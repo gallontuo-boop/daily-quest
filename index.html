@@ -595,20 +595,13 @@
 
 <script>
 /* ============================================================
-   ☁️ 雲端同步設定（Firebase）
-   還沒設定時 App 一切照常運作，只是設定頁會顯示「尚未設定」。
-   啟用步驟：
-   1. 到 https://console.firebase.google.com 建立專案
-   2. 專案設定 → 新增網頁應用程式 → 會看到 firebaseConfig
-   3. 把下面三個 "PASTE_..." 換成你的 apiKey / authDomain / projectId
-   4. Firebase 主控台 → Firestore Database → 建立資料庫 → 規則貼上
-      聊天訊息裡提供的規則 → 發布
-   5. 存檔後重新上傳到 GitHub 即完成
+   ☁️ 雲端同步設定（Firebase）—— ✅ 已設定完成（daily-quest-562fb）
+   如果之後換 Firebase 專案，把下面三個值換成新專案的即可。
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
+  apiKey: "AIzaSyCJlOvcHOwtMcBcXs34ShzcZdU5THMrLpQ",
+  authDomain: "daily-quest-562fb.firebaseapp.com",
+  projectId: "daily-quest-562fb",
 };
 const firebaseReady = () => !!FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('PASTE');
 
