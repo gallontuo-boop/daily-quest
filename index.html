@@ -342,6 +342,125 @@
   .wp-item.on .wp-swatch{border-color:var(--ink);box-shadow:0 0 0 2px var(--white) inset;}
   .wp-name{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;}
   .wp-item.on .wp-name{color:var(--ink);}
+
+  /* ===== 特別任務（清單）===== */
+  .list-card{
+    background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;
+    display:flex;align-items:center;gap:10px;cursor:pointer;
+  }
+  .list-card .lc-name{font-weight:900;font-size:15px;flex:1;}
+  .list-card .lc-prog{font-size:12.5px;color:var(--muted);font-weight:700;}
+  .list-card .lc-menu{
+    width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:var(--muted);background:rgba(0,0,0,0.05);
+  }
+  .list-card .lc-arrow{color:var(--muted);font-size:14px;}
+  .lc-bar{height:5px;background:var(--card-line);border-radius:99px;margin-top:8px;overflow:hidden;}
+  .lc-fill{height:100%;background:var(--tan);border-radius:99px;}
+  .add-list-btn{
+    width:100%;padding:14px;border-radius:16px;border:1.5px dashed var(--tan);
+    background:transparent;color:var(--tan-deep);font-weight:900;font-size:14.5px;
+    font-family:inherit;cursor:pointer;
+  }
+  .per-check-hint{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:10px;}
+  .cl-row{
+    background:var(--white);border:1px solid var(--card-line);border-radius:14px;
+    padding:11px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;
+  }
+  .cl-box{
+    width:26px;height:26px;border-radius:8px;border:2px solid var(--tan);
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    color:var(--white);font-weight:900;font-size:15px;cursor:pointer;background:var(--white);
+  }
+  .cl-row.done .cl-box{background:var(--tan);border-color:var(--tan);}
+  .cl-text{flex:1;font-size:14.5px;font-weight:700;word-break:break-word;cursor:pointer;}
+  .cl-row.done .cl-text{text-decoration:line-through;color:var(--muted);font-weight:400;}
+  .cl-menu{
+    width:28px;height:28px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:var(--muted);background:rgba(0,0,0,0.04);cursor:pointer;
+  }
+  .cl-add-row{display:flex;gap:8px;margin-top:4px;}
+  .cl-add-row input{
+    flex:1;padding:12px 14px;border-radius:14px;border:1.5px dashed var(--tan);
+    background:transparent;font-family:inherit;font-size:14.5px;color:var(--ink);
+  }
+  .cl-add-row input::placeholder{color:var(--muted);}
+  .cl-add-btn{
+    width:46px;border-radius:14px;border:none;background:var(--tan);color:var(--white);
+    font-size:20px;font-weight:900;cursor:pointer;flex:0 0 auto;
+  }
+
+  /* 備註欄 */
+  .note-wrap{margin-top:12px;background:var(--card);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px;}
+  .note-wrap .note-icon{font-size:14px;flex:0 0 auto;}
+  .note-wrap input{
+    flex:1;border:none;background:transparent;font-family:inherit;
+    font-size:13px;color:var(--ink);padding:4px 0;
+  }
+  .note-wrap input::placeholder{color:var(--muted);}
+  .note-count{font-size:10.5px;color:var(--muted);flex:0 0 auto;}
+
+  /* ===== 月曆 ===== */
+  .cal-card{background:var(--card);border-radius:18px;padding:16px;}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .cal-title{font-weight:900;font-size:16px;}
+  .cal-nav{
+    width:34px;height:34px;border-radius:50%;background:var(--white);
+    border:1px solid var(--card-line);display:flex;align-items:center;justify-content:center;
+    font-weight:900;cursor:pointer;color:var(--tan-deep);
+  }
+  .cal-week{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;}
+  .cal-week div{text-align:center;font-size:11px;color:var(--muted);font-weight:900;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .cal-cell{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;border-radius:50%;color:var(--ink);
+  }
+  .cal-cell.did{background:var(--tan);color:var(--white);}
+  .cal-cell.today{box-shadow:0 0 0 2px var(--tan-deep);}
+  .cal-cell.future{color:var(--card-line);}
+  .cal-sum{margin-top:12px;text-align:center;font-size:13px;color:var(--tan-deep);font-weight:900;}
+  .streak-wrap{cursor:pointer;}
+  .streak-arrow{margin-left:auto;color:var(--muted);font-size:14px;flex:0 0 auto;}
+
+  /* 封存區 */
+  .arch-row{
+    background:var(--white);border:1px solid var(--card-line);border-radius:14px;
+    padding:11px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+  }
+  .arch-name{flex:1;font-weight:700;font-size:14px;word-break:break-word;}
+  .arch-btn{
+    border:none;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:700;
+    font-family:inherit;cursor:pointer;flex:0 0 auto;
+  }
+  .arch-btn.restore{background:var(--tan);color:var(--white);}
+  .arch-btn.remove{background:transparent;color:#B5573F;border:1.5px solid #D8B4A8;}
+  .arch-sec{margin:16px 2px 8px;font-size:13px;font-weight:900;color:var(--muted);letter-spacing:1px;}
+
+  /* 清單完成分隔 */
+  .lists-divider{
+    margin:16px 2px 8px;font-size:12.5px;font-weight:900;color:var(--muted);
+    display:flex;align-items:center;gap:8px;
+  }
+  .lists-divider::after{content:'';flex:1;height:1px;background:var(--card-line);}
+  .list-card.alldone{opacity:0.65;}
+  .list-card.alldone .lc-name{text-decoration:line-through;color:var(--muted);}
+
+  /* 月曆點日期 */
+  .cal-cell.tappable{cursor:pointer;}
+  .cal-cell.sel{box-shadow:0 0 0 2px var(--ink);}
+  .cal-hint{margin-top:8px;text-align:center;font-size:11.5px;color:var(--muted);}
+  .cal-detail{background:var(--card);border-radius:16px;padding:14px 16px;margin-top:12px;}
+  .cal-detail-title{font-weight:900;font-size:14px;margin-bottom:8px;color:var(--tan-deep);}
+  .cal-detail-row{
+    display:flex;gap:8px;align-items:flex-start;font-size:13.5px;
+    padding:6px 0;border-bottom:1px dashed var(--card-line);
+  }
+  .cal-detail-row:last-child{border-bottom:none;}
+  .cal-detail-row .cdr-check{color:var(--tan-deep);font-weight:900;flex:0 0 auto;}
+  .cal-detail-row .cdr-src{color:var(--muted);font-size:11px;margin-top:1px;}
 </style>
 </head>
 <body>
@@ -366,6 +485,7 @@
 
 <div class="fab-row" id="fabRow">
   <div class="fab" id="fabRewards" title="獎勵">🎁</div>
+  <div class="fab" id="fabLists" title="特別任務">📋</div>
   <div class="fab" id="fabNewCell" title="新增任務">✎</div>
 </div>
 
@@ -404,6 +524,9 @@
     <h3 id="boardMenuTitle">棋盤選項</h3>
     <div class="sheet-btns">
       <button class="btn ghost" id="boardMenuEditBtn">修改名稱</button>
+      <button class="btn ghost" id="boardMenuArchiveBtn">封存棋盤</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
       <button class="btn danger" id="boardMenuDeleteBtn">刪除棋盤</button>
     </div>
     <div class="sheet-btns" style="margin-top:10px;">
@@ -536,6 +659,85 @@
 </div>
 
 <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+
+<!-- add checklist -->
+<div class="overlay" id="addListOverlay">
+  <div class="sheet">
+    <h3>新增清單</h3>
+    <input type="text" id="newListName" placeholder="例如：今日採購清單、旅行物品清單">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelAddList">取消</button>
+      <button class="btn primary" id="saveAddList">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- checklist menu -->
+<div class="overlay" id="listMenuOverlay">
+  <div class="sheet">
+    <h3 id="listMenuTitle">清單選項</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="listMenuRenameBtn">修改名稱</button>
+      <button class="btn ghost" id="listMenuArchiveBtn">封存清單</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn danger" id="listMenuDeleteBtn">刪除清單</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn ghost" id="listMenuCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- rename checklist -->
+<div class="overlay" id="renameListOverlay">
+  <div class="sheet">
+    <h3>修改清單名稱</h3>
+    <input type="text" id="renameListText" placeholder="清單名稱">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelRenameList">取消</button>
+      <button class="btn primary" id="saveRenameList">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- delete checklist confirm -->
+<div class="overlay" id="delListOverlay">
+  <div class="sheet">
+    <h3 id="delListTitle">刪除這個清單？</h3>
+    <div class="settings-desc" id="delListDesc">清單裡的項目會一併刪除（已得的星星不會扣回）。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelDelList">取消</button>
+      <button class="btn danger" id="confirmDelList">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- checklist item menu -->
+<div class="overlay" id="itemMenuOverlay">
+  <div class="sheet">
+    <h3 id="itemMenuTitle">項目選項</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="itemMenuEditBtn">編輯文字</button>
+      <button class="btn danger" id="itemMenuDeleteBtn">刪除</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn ghost" id="itemMenuCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- edit checklist item -->
+<div class="overlay" id="editItemOverlay">
+  <div class="sheet">
+    <h3>編輯項目</h3>
+    <input type="text" id="editItemText" placeholder="項目內容">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelEditItem">取消</button>
+      <button class="btn primary" id="saveEditItem">儲存</button>
+    </div>
+  </div>
+</div>
 
 <!-- set user name -->
 <div class="overlay" id="nameOverlay">
@@ -678,6 +880,24 @@ zh: {
   setBkTitle:'💾 資料備份', setBkDesc:'匯出會把所有資料（任務、積分、圖鑑、連續紀錄、暱稱）存成一個檔案；在任何裝置匯入即可還原。建議定期匯出保存。',
   btnExport:'匯出備份', btnImport:'匯入備份',
   setNameTitle:'✏️ 暱稱', nameCurrent:n=>`目前暱稱：${n}`, nameNone:'還沒設定暱稱', btnEditName:'修改暱稱',
+  listsTitle:'特別任務', calTitle:'打卡月曆',
+  noLists:'還沒有清單。特別任務適合一次性的事：採購清單、旅行打包、本月目標…',
+  addList:'＋ 新增清單', listProg:(a,b)=>`${a} / ${b}`,
+  perCheck:'完成一項 +2 ★', addItemPh:'輸入項目後按 Enter 或 ＋',
+  listEmpty:'還沒有項目，從下面新增第一個吧',
+  notePh:'📝 小備註（100 字內）…',
+  delListQ:n=>`刪除「${n}」這個清單？`,
+  calDoneN:n=>`本月打卡 ${n} 天`, weekdays:['日','一','二','三','四','五','六'],
+  calTapHint:'點日期看當天完成了什麼', calDayN:(d,n)=>`${d} ・ 完成 ${n} 項`, calDayNone:'這天沒有打卡紀錄',
+  deletedItem:'（已刪除的項目）',
+  archTitle:'封存區', setArchTitle:'🗄️ 封存區',
+  setArchDesc:(b,l)=>`用完的清單、暫停的棋盤收進這裡，主畫面保持清爽。目前封存：棋盤 ${b} 個、清單 ${l} 個。`,
+  btnArchiveView:'打開封存區', archBoards:'棋盤', archLists:'清單',
+  archEmpty:'封存區是空的。在棋盤或清單的「⋯」選單裡可以選「封存」。',
+  restore:'還原', removeBtn:'刪除', listsDoneDivider:'已完成',
+  archMin:'至少要保留一個使用中的棋盤', toastArchived:'已封存！可到 設定 → 封存區 找到它',
+  monthTitle:(y,m)=>`${y} 年 ${m} 月`,
+  backLists:'← 返回特別任務',
 },
 en: {
   appTitle:'Daily Quest', boardTitleOf:n=>`${n}'s Daily Quest`,
@@ -718,6 +938,24 @@ en: {
   setBkTitle:'💾 Backup', setBkDesc:'Export saves everything (tasks, points, collection, streak, nickname) to one file; import it on any device to restore. Do it regularly.',
   btnExport:'Export backup', btnImport:'Import backup',
   setNameTitle:'✏️ Nickname', nameCurrent:n=>`Current nickname: ${n}`, nameNone:'No nickname yet', btnEditName:'Change nickname',
+  listsTitle:'Special Tasks', calTitle:'Check-in Calendar',
+  noLists:'No lists yet. Special tasks are for one-off things: shopping lists, trip packing, monthly goals…',
+  addList:'＋ New list', listProg:(a,b)=>`${a} / ${b}`,
+  perCheck:'+2 ★ per item', addItemPh:'Type an item, press Enter or ＋',
+  listEmpty:'No items yet — add your first one below',
+  notePh:'📝 Quick note (max 100 chars)…',
+  delListQ:n=>`Delete the list "${n}"?`,
+  calDoneN:n=>`${n} check-in days this month`, weekdays:['S','M','T','W','T','F','S'],
+  calTapHint:'Tap a date to see what you completed', calDayN:(d,n)=>`${d} · ${n} completed`, calDayNone:'No check-ins on this day',
+  deletedItem:'(deleted item)',
+  archTitle:'Archive', setArchTitle:'🗄️ Archive',
+  setArchDesc:(b,l)=>`Finished lists and paused boards live here, keeping your main view clean. Archived: ${b} boards, ${l} lists.`,
+  btnArchiveView:'Open Archive', archBoards:'Boards', archLists:'Lists',
+  archEmpty:'Archive is empty. Use "Archive" in a board\'s or list\'s "⋯" menu.',
+  restore:'Restore', removeBtn:'Delete', listsDoneDivider:'Completed',
+  archMin:'At least one active board must remain', toastArchived:'Archived! Find it in Settings → Archive',
+  monthTitle:(y,m)=>{const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${M[m-1]} ${y}`;},
+  backLists:'← Back to Special Tasks',
 },
 };
 function t(key, ...args){
@@ -764,7 +1002,7 @@ const STATIC_TEXT = {
 zh: {
   '#boardOverlay h3':'新增棋盤','#newBoardName@ph':'例如：工作、健康','#copyTasksLabel':'複製目前棋盤的任務內容','#cancelBoard':'取消','#saveBoard':'新增',
   '#taskOverlay h3':'新增任務','#newTaskText@ph':'越小越好，例如：喝一口水、打開書本','#taskHint':'💡 小到不可能失敗的任務，最容易讓自己啟動','#cancelTask':'取消','#saveTask':'新增',
-  '#boardMenuEditBtn':'修改名稱','#boardMenuDeleteBtn':'刪除棋盤','#boardMenuCancelBtn':'取消',
+  '#boardMenuEditBtn':'修改名稱','#boardMenuArchiveBtn':'封存棋盤','#boardMenuDeleteBtn':'刪除棋盤','#boardMenuCancelBtn':'取消',
   '#renameBoardOverlay h3':'修改棋盤名稱','#renameBoardText@ph':'棋盤名稱','#cancelRenameBoard':'取消','#saveRenameBoard':'儲存',
   '#cancelDelBoard':'取消','#confirmDelBoard':'刪除',
   '#menuEditBtn':'編輯文字','#menuDeleteBtn':'刪除','#menuCancelBtn':'取消',
@@ -781,12 +1019,18 @@ zh: {
   '#cancelDelReward':'取消','#confirmDelReward':'刪除',
   '#cancelRedeem':'取消','#confirmRedeem':'兌換',
   '#achieveOverlay .achieve-title':'成就達成！','#closeAchieve':'太棒了','#closeGacha':'收下！',
-  '#settingsBadge@title':'設定','#ticketBadge@title':'扭蛋圖鑑','#fabRewards@title':'獎勵','#fabNewCell@title':'新增任務',
+  '#settingsBadge@title':'設定','#ticketBadge@title':'扭蛋圖鑑','#fabRewards@title':'獎勵','#fabNewCell@title':'新增任務','#fabLists@title':'特別任務',
+  '#addListOverlay h3':'新增清單','#newListName@ph':'例如：今日採購清單、旅行物品清單','#cancelAddList':'取消','#saveAddList':'新增',
+  '#listMenuRenameBtn':'修改名稱','#listMenuArchiveBtn':'封存清單','#listMenuDeleteBtn':'刪除清單','#listMenuCancelBtn':'取消',
+  '#renameListOverlay h3':'修改清單名稱','#renameListText@ph':'清單名稱','#cancelRenameList':'取消','#saveRenameList':'儲存',
+  '#delListDesc':'清單裡的項目會一併刪除（已得的星星不會扣回）。','#cancelDelList':'取消','#confirmDelList':'刪除',
+  '#itemMenuEditBtn':'編輯文字','#itemMenuDeleteBtn':'刪除','#itemMenuCancelBtn':'取消',
+  '#editItemOverlay h3':'編輯項目','#editItemText@ph':'項目內容','#cancelEditItem':'取消','#saveEditItem':'儲存',
 },
 en: {
   '#boardOverlay h3':'New board','#newBoardName@ph':'e.g. Work, Health','#copyTasksLabel':'Copy tasks from the current board','#cancelBoard':'Cancel','#saveBoard':'Add',
   '#taskOverlay h3':'New task','#newTaskText@ph':'The smaller the better, e.g. "sip water"','#taskHint':'💡 Tasks too small to fail are the easiest to start','#cancelTask':'Cancel','#saveTask':'Add',
-  '#boardMenuEditBtn':'Rename','#boardMenuDeleteBtn':'Delete board','#boardMenuCancelBtn':'Cancel',
+  '#boardMenuEditBtn':'Rename','#boardMenuArchiveBtn':'Archive board','#boardMenuDeleteBtn':'Delete board','#boardMenuCancelBtn':'Cancel',
   '#renameBoardOverlay h3':'Rename board','#renameBoardText@ph':'Board name','#cancelRenameBoard':'Cancel','#saveRenameBoard':'Save',
   '#cancelDelBoard':'Cancel','#confirmDelBoard':'Delete',
   '#menuEditBtn':'Edit text','#menuDeleteBtn':'Delete','#menuCancelBtn':'Cancel',
@@ -803,7 +1047,13 @@ en: {
   '#cancelDelReward':'Cancel','#confirmDelReward':'Delete',
   '#cancelRedeem':'Cancel','#confirmRedeem':'Redeem',
   '#achieveOverlay .achieve-title':'Achievement unlocked!','#closeAchieve':'Awesome','#closeGacha':'Take it!',
-  '#settingsBadge@title':'Settings','#ticketBadge@title':'Gacha Collection','#fabRewards@title':'Rewards','#fabNewCell@title':'New task',
+  '#settingsBadge@title':'Settings','#ticketBadge@title':'Gacha Collection','#fabRewards@title':'Rewards','#fabNewCell@title':'New task','#fabLists@title':'Special Tasks',
+  '#addListOverlay h3':'New list','#newListName@ph':'e.g. Shopping list, Trip packing','#cancelAddList':'Cancel','#saveAddList':'Add',
+  '#listMenuRenameBtn':'Rename','#listMenuArchiveBtn':'Archive list','#listMenuDeleteBtn':'Delete list','#listMenuCancelBtn':'Cancel',
+  '#renameListOverlay h3':'Rename list','#renameListText@ph':'List name','#cancelRenameList':'Cancel','#saveRenameList':'Save',
+  '#delListDesc':'All items in this list will be deleted (stars already earned are kept).','#cancelDelList':'Cancel','#confirmDelList':'Delete',
+  '#itemMenuEditBtn':'Edit text','#itemMenuDeleteBtn':'Delete','#itemMenuCancelBtn':'Cancel',
+  '#editItemOverlay h3':'Edit item','#editItemText@ph':'Item text','#cancelEditItem':'Cancel','#saveEditItem':'Save',
 },
 };
 function applyStaticLang(){
@@ -902,6 +1152,8 @@ let state = {
   nameAsked: false,      // 是否已問過名字（避免每次開啟都跳）
   lang: IS_ZH_DEVICE ? 'zh' : 'en', // 介面語言（首次依裝置語言自動偵測）
   wallpaper: 'classic',  // 背景桌布
+  checklists: [],        // 特別任務清單
+  activeList: null,      // 目前開啟的清單 id
   view: 'board' // 'board' | 'rewards' | 'gacha'
 };
 
@@ -984,14 +1236,21 @@ function computeStreak(){
   return streak;
 }
 
+function activeBoards(){ return state.boards.filter(b => !b.archived); }
+
 function render(){
   document.getElementById('starCount').textContent = state.points;
   document.getElementById('ticketCount').textContent = state.tickets;
   applyStaticLang();
   applyWallpaper();
   const boardTitle = state.userName ? t('boardTitleOf', state.userName) : t('appTitle');
-  const titles = { board: boardTitle, rewards:t('rewards'), gacha:t('gacha'), settings:t('settings'), help:t('help') };
-  document.getElementById('pageTitle').textContent = titles[state.view] || t('appTitle');
+  const titles = { board: boardTitle, rewards:t('rewards'), gacha:t('gacha'), settings:t('settings'), help:t('help'), lists:t('listsTitle'), calendar:t('calTitle'), archive:t('archTitle') };
+  let pageT = titles[state.view] || t('appTitle');
+  if(state.view === 'listDetail'){
+    const al = state.checklists.find(l => l.id === state.activeList);
+    pageT = al ? al.name : t('listsTitle');
+  }
+  document.getElementById('pageTitle').textContent = pageT;
   document.getElementById('fabRow').style.display = state.view === 'board' ? 'flex' : 'none';
 
   const main = document.getElementById('mainView');
@@ -1013,11 +1272,31 @@ function render(){
     renderHelp(main);
     return;
   }
+  if(state.view === 'lists'){
+    renderLists(main);
+    return;
+  }
+  if(state.view === 'listDetail'){
+    renderListDetail(main);
+    return;
+  }
+  if(state.view === 'calendar'){
+    renderCalendar(main);
+    return;
+  }
+  if(state.view === 'archive'){
+    renderArchive(main);
+    return;
+  }
 
-  // tabs
+  // tabs（只顯示未封存的棋盤）
+  const actB = activeBoards();
+  if(actB.length && !actB.find(b => b.id === state.activeBoard)){
+    state.activeBoard = actB[0].id;
+  }
   const tabs = document.createElement('div');
   tabs.className = 'tabs';
-  state.boards.forEach(b => {
+  actB.forEach(b => {
     const wrap = document.createElement('div');
     wrap.className = 'tab-wrap' + (b.id === state.activeBoard ? ' active' : '');
     const t = document.createElement('div');
@@ -1071,7 +1350,10 @@ function render(){
 
   main.appendChild(grid);
 
-  // 連續打卡 streak 卡片
+  // 棋盤備註欄
+  main.appendChild(buildNote(board));
+
+  // 連續打卡 streak 卡片（點一下開打卡月曆）
   const streak = computeStreak();
   const checkedToday = hasCheckinOn(todayKey());
   const sw = document.createElement('div');
@@ -1082,7 +1364,9 @@ function render(){
       <div class="streak-num">${t('streakDays', streak)}</div>
       <div class="streak-sub">${checkedToday ? t('streakDone') : t('streakNot')}　·　${t('streakBest', Math.max(state.bestStreak || 0, streak))}</div>
     </div>
+    <div class="streak-arrow">▶</div>
   `;
+  sw.onclick = () => { state.view = 'calendar'; render(); };
   main.appendChild(sw);
 
   // progress to next milestone
@@ -1559,6 +1843,21 @@ function renderSettings(main){
   bkCard.querySelector('#btnExport').onclick = exportBackup;
   bkCard.querySelector('#btnImport').onclick = () => document.getElementById('importFile').click();
 
+  // --- 封存區 ---
+  const archB = state.boards.filter(b => b.archived).length;
+  const archL = state.checklists.filter(l => l.archived).length;
+  const archCard = document.createElement('div');
+  archCard.className = 'settings-card';
+  archCard.innerHTML = `
+    <div class="settings-title">${t('setArchTitle')}</div>
+    <div class="settings-desc">${t('setArchDesc', archB, archL)}</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="btnArchView">${t('btnArchiveView')}</button>
+    </div>
+  `;
+  main.appendChild(archCard);
+  archCard.querySelector('#btnArchView').onclick = () => { state.view = 'archive'; render(); };
+
   // --- 暱稱 ---
   const nmCard = document.createElement('div');
   nmCard.className = 'settings-card';
@@ -1577,6 +1876,7 @@ function renderSettings(main){
 const HELP_SECTIONS = [
   { t:'💡 這是什麼？', b:`「每日任務」幫你<b>啟動日常小行動</b>。核心想法：任務越小越好——「喝一口水」「打開書本」都值得成為一格任務。最難的不是做完，而是開始，所以這裡<b>獎勵的是啟動本身</b>。<div class="hb-card">你會得到三種動力：<br>① 完成任務得 ★ 星星，兌換自訂的真實獎勵<br>② 獲得 🎫 扭蛋券，抽收藏品、集滿 48 格圖鑑<br>③ 🔥 連續打卡紀錄與 8 個里程碑成就</div>` },
   { t:'🗂️ 任務與棋盤', b:`<b>打卡</b>：點任務格＝完成（+1★＋彩帶），再點＝取消。<br><b>編輯／刪除任務</b>：點格子右上角「⋯」。<br><b>新增任務</b>：點右下角 ✎，任務拆到「小到不可能失敗」最有效——與其寫「運動 30 分鐘」，不如寫「換上運動服」。<br><b>棋盤分頁</b>：上方分頁可分類任務（如「每日待辦」「運動」）。點「＋」新增棋盤（可複製目前棋盤的任務）；分頁旁「⋯」可改名或刪除。` },
+  { t:'📋 特別任務（清單）與月曆', b:`<b>特別任務</b>：點首頁下方中間的 📋，適合一次性的事——採購清單、旅行打包、本月目標。建立清單後直接輸入項目按 Enter 就加入；打勾一項 <b>+2★</b>（比日常任務多，因為通常更費力），完成的項目會加上刪除線。項目旁「⋯」可編輯或刪除。<br><br><b>打卡月曆</b>：點首頁的 🔥 連續打卡卡片，可以看整個月哪些天有打卡（任何一個日常或特別任務都算）；<b>點任何一個日期</b>，還能看到那天完成了哪些項目——想回顧以前的紀錄，用日期找最快。<br><br><b>封存</b>：用完的清單或暫停的棋盤，在「⋯」選單選「封存」收進 設定 → 🗄️ 封存區，主畫面永遠只留現在進行中的事；封存不是刪除，隨時可以還原。<br><br><b>備註欄</b>：每個棋盤和每個清單的最下面都有一格 📝 小備註（100 字內），寫點提醒自己的話。` },
   { t:'★ 星星與真實獎勵', b:`每完成一個任務 +1★。點右上角 ★ 進入獎勵頁 → 「＋ 新增獎勵」設定<b>你自己想要的真實獎勵</b>與價格，積分夠了按「兌換」。獎勵卡片上的「⋯」可編輯或刪除。<div class="hb-card"><b>定價心法</b>（假設一天完成 5～8 個任務）：<br>小獎勵 30～50★＝一週內摸得到（一瓶飲料）<br>中獎勵 150★ 左右＝約三週（看場電影）<br>大獎勵 300～500★＝一兩個月（買件衣服）<br>一定要有一個很快能換到的小獎勵，動力系統才轉得起來！</div>` },
   { t:'🎫 扭蛋券與收藏圖鑑', b:`<b>拿券</b>：每天第一個完成的任務送 1 張（獎勵你的啟動！）；每累積完成 10 個任務再送 1 張。<br><b>抽獎</b>：點右上角 🎫 → 「轉一顆！」。會優先抽到你<b>還沒收集的</b>，不會一直重複。<br><b>圖鑑</b>：共 48 格——普通 28 種（70%）、稀有 14 種（25%）、傳說 6 種（5%）。全部集滿後，多的券自動換成 ★5。` },
   { t:'🔥 連續打卡與成就', b:`當天完成<b>至少 1 個任務</b>就算打卡。今天還沒打卡時火焰是灰色的（從昨天往回數、不算斷），完成任何一格就點亮。中間漏一天才會歸零，最佳紀錄會永久保留。<br><br>累積完成 10／25／50／100／200／365／500／1000 個任務時，會跳出獎章慶祝，首頁下方進度條顯示距離下一個成就還差多少。` },
@@ -1588,6 +1888,7 @@ const HELP_SECTIONS = [
 const HELP_SECTIONS_EN = [
   { t:'💡 What is this?', b:`Daily Quest helps you <b>start small daily actions</b>. The core idea: the smaller the task, the better — "sip water" or "open the book" all deserve a tile. The hardest part isn't finishing, it's starting, so this app <b>rewards the act of starting itself</b>.<div class="hb-card">Three sources of motivation:<br>① Complete tasks to earn ★ stars for real-life rewards you define<br>② Earn 🎫 gacha tickets to draw collectibles and fill the 48-item book<br>③ A 🔥 daily streak and 8 milestone achievements</div>` },
   { t:'🗂️ Tasks & boards', b:`<b>Check in</b>: tap a tile = done (+1★ + confetti), tap again = undo.<br><b>Edit / delete</b>: tap the "⋯" at the tile's top right.<br><b>Add tasks</b>: tap ✎ at the bottom right. Break tasks down until they're "too small to fail" — instead of "exercise 30 min", write "put on workout clothes".<br><b>Board tabs</b>: organize tasks into boards (e.g. "Daily", "Fitness"). Tap "+" to add a board (optionally copying current tasks); "⋯" next to a tab renames or deletes it.` },
+  { t:'📋 Special Tasks (lists) & Calendar', b:`<b>Special Tasks</b>: tap 📋 at the bottom center of the home page — great for one-off things like shopping lists, trip packing, or monthly goals. After creating a list, just type an item and press Enter to add it. Each checked item earns <b>+2★</b> (more than daily tasks, since they usually take more effort), and done items get a strikethrough. The "⋯" next to each item edits or deletes it.<br><br><b>Check-in Calendar</b>: tap the 🔥 streak card to see which days you checked in (any daily or special task counts) — and <b>tap any date</b> to see exactly what you completed that day. The fastest way to look back at old records is by date.<br><br><b>Archive</b>: finished lists or paused boards can be archived via the "⋯" menu into Settings → 🗄️ Archive, so your main view only shows what's active now. Archiving isn't deleting — restore anytime.<br><br><b>Notes</b>: every board and every list has a 📝 quick-note field at the bottom (max 100 chars) for little reminders.` },
   { t:'★ Stars & real rewards', b:`Each completed task earns +1★. Tap ★ at the top right → "+ Add reward" to define <b>your own real-life rewards</b> and prices; when you have enough, tap "Redeem". The "⋯" on each card edits or deletes it.<div class="hb-card"><b>Pricing guide</b> (5–8 tasks/day):<br>Small 30–50★ = within a week (a drink)<br>Medium ~150★ = about 3 weeks (a movie)<br>Big 300–500★ = 1–2 months (a new shirt)<br>Always keep one cheap reward — early wins keep the loop spinning!</div>` },
   { t:'🎫 Gacha & collection', b:`<b>Earn tickets</b>: your first completed task each day earns 1 (a reward for starting!); every 10 completed tasks earn 1 more.<br><b>Draw</b>: tap 🎫 → "Spin!". Draws favor items <b>you don't own yet</b> — no frustrating duplicates.<br><b>Collection</b>: 48 items — Common 28 (70%), Rare 14 (25%), Legendary 6 (5%). Once complete, extra tickets convert to ★5 each.` },
   { t:'🔥 Streak & milestones', b:`Completing <b>at least 1 task</b> counts as a check-in for the day. The flame is grey until your first task today (counting from yesterday — the streak isn't broken yet); it lights up when you complete any tile. Missing a whole day resets it; your best record is kept forever.<br><br>At 10 / 25 / 50 / 100 / 200 / 365 / 500 / 1000 total tasks, a medal celebration pops up; the progress bar on the home page shows how close you are.` },
@@ -1625,6 +1926,353 @@ function renderHelp(main){
     d.querySelector('.help-head').onclick = () => d.classList.toggle('open');
     main.appendChild(d);
   });
+}
+
+// ===== 📝 備註欄（棋盤與清單共用，上限 100 字）=====
+function buildNote(obj){
+  const wrap = document.createElement('div');
+  wrap.className = 'note-wrap';
+  const cur = obj.note || '';
+  wrap.innerHTML = `
+    <span class="note-icon">📝</span>
+    <input type="text" maxlength="100" value="${escapeHtml(cur)}" placeholder="${t('notePh')}">
+    <span class="note-count">${cur.length}/100</span>
+  `;
+  const inp = wrap.querySelector('input');
+  const cnt = wrap.querySelector('.note-count');
+  inp.oninput = () => { cnt.textContent = inp.value.length + '/100'; };
+  inp.onchange = async () => { obj.note = inp.value.slice(0, 100); await saveState(); };
+  inp.onkeydown = (e) => { if(e.key === 'Enter') inp.blur(); };
+  return wrap;
+}
+
+// ===== 📋 特別任務（清單總覽）=====
+let pendingList = null;
+
+function renderLists(main){
+  const back = el('div','back-link', t('backTasks'));
+  back.onclick = () => { state.view = 'board'; render(); };
+  main.appendChild(back);
+
+  const visible = state.checklists.filter(l => !l.archived);
+  if(!visible.length){
+    main.appendChild(el('div','empty-hint', t('noLists')));
+  }
+
+  const isAllDone = l => l.items.length > 0 && l.items.every(i => i.done);
+  const activeL = visible.filter(l => !isAllDone(l));
+  const doneL = visible.filter(isAllDone);
+
+  const buildListCard = (list) => {
+    const done = list.items.filter(i => i.done).length;
+    const total = list.items.length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'list-card';
+    card.innerHTML = `
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="lc-name">${escapeHtml(list.name)}</div>
+          <div class="lc-prog">${t('listProg', done, total)}</div>
+        </div>
+        <div class="lc-bar"><div class="lc-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="lc-menu">⋯</div>
+      <div class="lc-arrow">▶</div>
+    `;
+    card.querySelector('.lc-menu').onclick = (e) => { e.stopPropagation(); openListMenu(list.id); };
+    card.onclick = () => { state.activeList = list.id; state.view = 'listDetail'; render(); };
+    if(isAllDone(list)) card.classList.add('alldone');
+    return card;
+  };
+
+  activeL.forEach(l => main.appendChild(buildListCard(l)));
+  if(doneL.length){
+    main.appendChild(el('div','lists-divider', t('listsDoneDivider')));
+    doneL.forEach(l => main.appendChild(buildListCard(l)));
+  }
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-list-btn';
+  addBtn.textContent = t('addList');
+  addBtn.onclick = () => { document.getElementById('newListName').value = ''; showOverlay('addListOverlay'); };
+  main.appendChild(addBtn);
+}
+
+function openListMenu(listId){
+  const list = state.checklists.find(l => l.id === listId);
+  if(!list) return;
+  pendingList = list;
+  document.getElementById('listMenuTitle').textContent = list.name;
+  showOverlay('listMenuOverlay');
+}
+
+// ===== 📋 清單內頁 =====
+let pendingItem = null;
+
+function renderListDetail(main){
+  const list = state.checklists.find(l => l.id === state.activeList);
+  if(!list){ state.view = 'lists'; render(); return; }
+
+  const back = el('div','back-link', t('backLists'));
+  back.onclick = () => { state.view = 'lists'; render(); };
+  main.appendChild(back);
+
+  main.appendChild(el('div','per-check-hint', t('perCheck')));
+
+  if(!list.items.length){
+    main.appendChild(el('div','empty-hint', t('listEmpty')));
+  }
+
+  list.items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'cl-row' + (item.done ? ' done' : '');
+    row.innerHTML = `
+      <div class="cl-box">${item.done ? '✓' : ''}</div>
+      <div class="cl-text">${escapeHtml(item.text)}</div>
+      <div class="cl-menu">⋯</div>
+    `;
+    const doToggle = () => toggleItem(list.id, item.id, row);
+    row.querySelector('.cl-box').onclick = doToggle;
+    row.querySelector('.cl-text').onclick = doToggle;
+    row.querySelector('.cl-menu').onclick = () => openItemMenu(list.id, item.id);
+    main.appendChild(row);
+  });
+
+  // 零阻力新增列：輸入按 Enter 或 ＋
+  const addRow = document.createElement('div');
+  addRow.className = 'cl-add-row';
+  addRow.innerHTML = `
+    <input type="text" id="newItemInput" placeholder="${t('addItemPh')}" maxlength="80">
+    <button class="cl-add-btn">＋</button>
+  `;
+  const inp = addRow.querySelector('input');
+  const addItem = async () => {
+    const text = inp.value.trim();
+    if(!text) return;
+    list.items.push({ id: uid(), text, done: false, doneDay: null });
+    inp.value = '';
+    render();
+    // 重新聚焦，方便連續輸入
+    const again = document.getElementById('newItemInput');
+    if(again) again.focus();
+    await saveState();
+  };
+  inp.onkeydown = (e) => { if(e.key === 'Enter') addItem(); };
+  addRow.querySelector('.cl-add-btn').onclick = addItem;
+  main.appendChild(addRow);
+
+  // 清單備註欄
+  main.appendChild(buildNote(list));
+}
+
+function openItemMenu(listId, itemId){
+  const list = state.checklists.find(l => l.id === listId);
+  const item = list && list.items.find(i => i.id === itemId);
+  if(!item) return;
+  pendingItem = { list, item };
+  document.getElementById('itemMenuTitle').textContent = item.text;
+  showOverlay('itemMenuOverlay');
+}
+
+// 打勾／取消：一項 +2★，同時計入打卡、集氣與里程碑
+async function toggleItem(listId, itemId, rowEl){
+  const list = state.checklists.find(l => l.id === listId);
+  const item = list && list.items.find(i => i.id === itemId);
+  if(!item) return;
+
+  if(item.done){
+    item.done = false;
+    if(item.doneDay && state.completions[item.doneDay]){
+      delete state.completions[item.doneDay]['cl_' + item.id];
+    }
+    item.doneDay = null;
+    state.points = Math.max(0, state.points - 2);
+    state.totalCompletions = Math.max(0, state.totalCompletions - 1);
+    state.ticketMeter = Math.max(0, (state.ticketMeter || 0) - 1);
+  } else {
+    const day = todayKey();
+    const firstOfToday = !hasCheckinOn(day);
+    if(!state.completions[day]) state.completions[day] = {};
+    state.completions[day]['cl_' + item.id] = true;
+    item.done = true;
+    item.doneDay = day;
+    state.points += 2;
+    state.totalCompletions += 1;
+    if(rowEl){
+      const r = rowEl.getBoundingClientRect();
+      burstConfetti(r.left + 24, r.top + r.height / 2);
+    }
+    if(firstOfToday && state.lastDailyTicketDay !== day){
+      state.tickets += 1;
+      state.lastDailyTicketDay = day;
+      showToast(t('toastDailyTicket'));
+    }
+    state.ticketMeter = (state.ticketMeter || 0) + 1;
+    if(state.ticketMeter >= TICKET_EVERY){
+      state.ticketMeter -= TICKET_EVERY;
+      state.tickets += 1;
+      showToast(t('toastMeterTicket', TICKET_EVERY));
+    }
+    const s = computeStreak();
+    if(s > (state.bestStreak || 0)) state.bestStreak = s;
+    checkMilestone();
+  }
+  render();
+  await saveState();
+}
+
+// ===== 🗓️ 打卡月曆 =====
+let calY = null, calM = null; // 檢視中的年月（不存檔）
+let calSelDay = null;          // 點選中的日期
+
+function renderCalendar(main){
+  const now = new Date();
+  if(calY === null){ calY = now.getFullYear(); calM = now.getMonth(); }
+
+  const back = el('div','back-link', t('backTasks'));
+  back.onclick = () => { state.view = 'board'; calY = null; calM = null; calSelDay = null; render(); };
+  main.appendChild(back);
+
+  const card = document.createElement('div');
+  card.className = 'cal-card';
+
+  const first = new Date(calY, calM, 1);
+  const startIdx = first.getDay(); // 週日開頭
+  const daysInMonth = new Date(calY, calM + 1, 0).getDate();
+  const todayK = todayKey();
+
+  let cells = '';
+  for(let i = 0; i < startIdx; i++) cells += '<div class="cal-cell"></div>';
+  let monthCount = 0;
+  for(let d = 1; d <= daysInMonth; d++){
+    const key = dateKeyOf(new Date(calY, calM, d));
+    const did = hasCheckinOn(key);
+    if(did) monthCount++;
+    const isToday = key === todayK;
+    const isFuture = key > todayK;
+    const sel = key === calSelDay;
+    cells += `<div class="cal-cell${did ? ' did' : ''}${isToday ? ' today' : ''}${isFuture ? ' future' : ''}${sel ? ' sel' : ''}${!isFuture ? ' tappable' : ''}"${!isFuture ? ` data-key="${key}"` : ''}>${d}</div>`;
+  }
+
+  const wd = t('weekdays');
+  card.innerHTML = `
+    <div class="cal-head">
+      <div class="cal-nav" id="calPrev">◀</div>
+      <div class="cal-title">${t('monthTitle', calY, calM + 1)}</div>
+      <div class="cal-nav" id="calNext">▶</div>
+    </div>
+    <div class="cal-week">${wd.map(w => `<div>${w}</div>`).join('')}</div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-sum">🔥 ${t('calDoneN', monthCount)}</div>
+    <div class="cal-hint">${t('calTapHint')}</div>
+  `;
+  card.querySelector('#calPrev').onclick = () => { calM--; if(calM < 0){ calM = 11; calY--; } calSelDay = null; render(); };
+  card.querySelector('#calNext').onclick = () => { calM++; if(calM > 11){ calM = 0; calY++; } calSelDay = null; render(); };
+  card.querySelectorAll('.cal-cell.tappable').forEach(c => {
+    c.onclick = () => { calSelDay = c.dataset.key; render(); };
+  });
+  main.appendChild(card);
+
+  // 當日明細
+  if(calSelDay){
+    const detail = document.createElement('div');
+    detail.className = 'cal-detail';
+    const dayObj = state.completions[calSelDay] || {};
+    const keys = Object.keys(dayObj);
+    if(!keys.length){
+      detail.innerHTML = `<div class="cal-detail-title">${escapeHtml(calSelDay)}</div><div class="settings-desc" style="margin:0;">${t('calDayNone')}</div>`;
+    } else {
+      let rows = '';
+      keys.forEach(k => {
+        const info = resolveCompletion(k);
+        rows += `
+          <div class="cal-detail-row">
+            <span class="cdr-check">✓</span>
+            <span style="flex:1;">${escapeHtml(info.text)}<div class="cdr-src">${escapeHtml(info.src)}</div></span>
+          </div>`;
+      });
+      detail.innerHTML = `<div class="cal-detail-title">${t('calDayN', escapeHtml(calSelDay), keys.length)}</div>` + rows;
+    }
+    main.appendChild(detail);
+  }
+}
+
+// ===== 🗄️ 封存區 =====
+function renderArchive(main){
+  const back = el('div','back-link', t('backSettings'));
+  back.onclick = () => { state.view = 'settings'; render(); };
+  main.appendChild(back);
+
+  const archBoardsArr = state.boards.filter(b => b.archived);
+  const archListsArr = state.checklists.filter(l => l.archived);
+
+  if(!archBoardsArr.length && !archListsArr.length){
+    main.appendChild(el('div','empty-hint', t('archEmpty')));
+    return;
+  }
+
+  const buildRow = (name, onRestore, onDelete) => {
+    const row = document.createElement('div');
+    row.className = 'arch-row';
+    row.innerHTML = `
+      <div class="arch-name">${escapeHtml(name)}</div>
+      <button class="arch-btn restore"></button>
+      <button class="arch-btn remove"></button>
+    `;
+    const [rBtn, dBtn] = row.querySelectorAll('button');
+    rBtn.textContent = t('restore');
+    dBtn.textContent = t('removeBtn');
+    rBtn.onclick = onRestore;
+    dBtn.onclick = onDelete;
+    return row;
+  };
+
+  if(archBoardsArr.length){
+    main.appendChild(el('div','arch-sec', t('archBoards')));
+    archBoardsArr.forEach(b => {
+      main.appendChild(buildRow(b.name,
+        async () => { b.archived = false; render(); await saveState(); },
+        () => {
+          pendingBoardAction = { boardId: b.id, name: b.name };
+          document.getElementById('delBoardTitle').textContent = t('delBoardQ', b.name);
+          document.getElementById('confirmDelBoard').style.display = '';
+          showOverlay('delBoardOverlay');
+        }
+      ));
+    });
+  }
+
+  if(archListsArr.length){
+    main.appendChild(el('div','arch-sec', t('archLists')));
+    archListsArr.forEach(l => {
+      main.appendChild(buildRow(l.name,
+        async () => { l.archived = false; render(); await saveState(); },
+        () => {
+          pendingList = l;
+          document.getElementById('delListTitle').textContent = t('delListQ', l.name);
+          showOverlay('delListOverlay');
+        }
+      ));
+    });
+  }
+}
+
+// 由打卡紀錄的 key 反查任務文字（含封存中的棋盤/清單）
+function resolveCompletion(k){
+  if(k.startsWith('cl_')){
+    const itemId = k.slice(3);
+    for(const l of state.checklists){
+      const it = l.items.find(i => i.id === itemId);
+      if(it) return { text: it.text, src: '📋 ' + l.name };
+    }
+  } else {
+    for(const b of state.boards){
+      const tk = (b.tasks || []).find(x => x.id === k);
+      if(tk) return { text: tk.text, src: b.name };
+    }
+  }
+  return { text: t('deletedItem'), src: '' };
 }
 
 function el(tag, cls, text){
@@ -1807,9 +2455,28 @@ document.getElementById('boardMenuEditBtn').onclick = () => {
   document.getElementById('renameBoardText').value = pendingBoardAction ? pendingBoardAction.name : '';
   showOverlay('renameBoardOverlay');
 };
+document.getElementById('boardMenuArchiveBtn').onclick = async () => {
+  hideOverlay('boardMenuOverlay');
+  if(!pendingBoardAction) return;
+  if(activeBoards().length <= 1){
+    document.getElementById('delBoardTitle').textContent = t('archMin');
+    document.getElementById('confirmDelBoard').style.display = 'none';
+    showOverlay('delBoardOverlay');
+    return;
+  }
+  const board = state.boards.find(b => b.id === pendingBoardAction.boardId);
+  if(board){
+    board.archived = true;
+    if(state.activeBoard === board.id) state.activeBoard = activeBoards()[0].id;
+    showToast(t('toastArchived'));
+  }
+  pendingBoardAction = null;
+  render();
+  await saveState();
+};
 document.getElementById('boardMenuDeleteBtn').onclick = () => {
   hideOverlay('boardMenuOverlay');
-  if(state.boards.length <= 1){
+  if(activeBoards().length <= 1 && !(pendingBoardAction && (state.boards.find(b => b.id === pendingBoardAction.boardId) || {}).archived)){
     document.getElementById('delBoardTitle').textContent = t('delBoardMin');
     showOverlay('delBoardOverlay');
     document.getElementById('confirmDelBoard').style.display = 'none';
@@ -1837,7 +2504,8 @@ document.getElementById('confirmDelBoard').onclick = async () => {
   if(pendingBoardAction && state.boards.length > 1){
     state.boards = state.boards.filter(b => b.id !== pendingBoardAction.boardId);
     if(state.activeBoard === pendingBoardAction.boardId){
-      state.activeBoard = state.boards[0].id;
+      const act = activeBoards();
+      state.activeBoard = act.length ? act[0].id : (state.boards[0] && state.boards[0].id);
     }
   }
   pendingBoardAction = null;
@@ -1910,6 +2578,95 @@ document.getElementById('confirmImport').onclick = async () => {
 document.getElementById('ticketBadge').onclick = () => { state.view = 'gacha'; render(); };
 document.getElementById('closeGacha').onclick = () => { hideOverlay('gachaOverlay'); state.view = 'gacha'; render(); };
 document.getElementById('fabRewards').onclick = () => { state.view = 'rewards'; render(); };
+document.getElementById('fabLists').onclick = () => { state.view = 'lists'; render(); };
+
+// --- 特別任務：清單 CRUD ---
+document.getElementById('cancelAddList').onclick = () => hideOverlay('addListOverlay');
+document.getElementById('saveAddList').onclick = async () => {
+  const name = document.getElementById('newListName').value.trim();
+  if(!name){ hideOverlay('addListOverlay'); return; }
+  const list = { id: uid(), name, items: [], note: '' };
+  state.checklists.push(list);
+  hideOverlay('addListOverlay');
+  state.activeList = list.id;
+  state.view = 'listDetail'; // 建立後直接進入，馬上可以開始填
+  render();
+  await saveState();
+};
+
+document.getElementById('listMenuCancelBtn').onclick = () => { hideOverlay('listMenuOverlay'); pendingList = null; };
+document.getElementById('listMenuRenameBtn').onclick = () => {
+  hideOverlay('listMenuOverlay');
+  if(!pendingList) return;
+  document.getElementById('renameListText').value = pendingList.name;
+  showOverlay('renameListOverlay');
+};
+document.getElementById('listMenuArchiveBtn').onclick = async () => {
+  hideOverlay('listMenuOverlay');
+  if(!pendingList) return;
+  pendingList.archived = true;
+  showToast(t('toastArchived'));
+  pendingList = null;
+  render();
+  await saveState();
+};
+document.getElementById('listMenuDeleteBtn').onclick = () => {
+  hideOverlay('listMenuOverlay');
+  if(!pendingList) return;
+  document.getElementById('delListTitle').textContent = t('delListQ', pendingList.name);
+  showOverlay('delListOverlay');
+};
+
+document.getElementById('cancelRenameList').onclick = () => { hideOverlay('renameListOverlay'); pendingList = null; };
+document.getElementById('saveRenameList').onclick = async () => {
+  const name = document.getElementById('renameListText').value.trim();
+  if(name && pendingList) pendingList.name = name;
+  pendingList = null;
+  hideOverlay('renameListOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelDelList').onclick = () => { hideOverlay('delListOverlay'); pendingList = null; };
+document.getElementById('confirmDelList').onclick = async () => {
+  if(pendingList){
+    state.checklists = state.checklists.filter(l => l.id !== pendingList.id);
+    if(state.activeList === pendingList.id) state.activeList = null;
+    pendingList = null;
+  }
+  hideOverlay('delListOverlay');
+  if(state.view === 'listDetail') state.view = 'lists';
+  render();
+  await saveState();
+};
+
+// --- 特別任務：項目編輯／刪除 ---
+document.getElementById('itemMenuCancelBtn').onclick = () => { hideOverlay('itemMenuOverlay'); pendingItem = null; };
+document.getElementById('itemMenuEditBtn').onclick = () => {
+  hideOverlay('itemMenuOverlay');
+  if(!pendingItem) return;
+  document.getElementById('editItemText').value = pendingItem.item.text;
+  showOverlay('editItemOverlay');
+};
+document.getElementById('itemMenuDeleteBtn').onclick = async () => {
+  hideOverlay('itemMenuOverlay');
+  if(pendingItem){
+    pendingItem.list.items = pendingItem.list.items.filter(i => i.id !== pendingItem.item.id);
+    pendingItem = null;
+    render();
+    await saveState();
+  }
+};
+
+document.getElementById('cancelEditItem').onclick = () => { hideOverlay('editItemOverlay'); pendingItem = null; };
+document.getElementById('saveEditItem').onclick = async () => {
+  const text = document.getElementById('editItemText').value.trim();
+  if(text && pendingItem) pendingItem.item.text = text;
+  pendingItem = null;
+  hideOverlay('editItemOverlay');
+  render();
+  await saveState();
+};
 document.getElementById('fabNewCell').onclick = () => showOverlay('taskOverlay');
 
 document.getElementById('cancelBoard').onclick = () => hideOverlay('boardOverlay');
