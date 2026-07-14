@@ -425,6 +425,47 @@
   .streak-wrap{cursor:pointer;}
   .streak-arrow{margin-left:auto;color:var(--muted);font-size:14px;flex:0 0 auto;}
 
+  /* 今日焦點 */
+  .focus-wrap{
+    background:var(--card);border:1.5px solid var(--gold);
+    border-radius:18px;padding:12px 14px;margin-bottom:14px;
+  }
+  .focus-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .focus-title{font-weight:900;font-size:14.5px;color:var(--tan-deep);}
+  .focus-sub{font-size:11px;color:var(--muted);font-weight:700;}
+  .focus-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .focus-slot{
+    position:relative;background:var(--white);border:1px solid var(--card-line);
+    border-radius:14px;min-height:64px;padding:8px 8px 22px;
+    font-size:12.5px;font-weight:700;line-height:1.4;word-break:break-word;cursor:pointer;
+  }
+  .focus-slot.done{background:var(--tan);border-color:var(--tan);color:var(--white);}
+  .focus-slot.done .fs-text{text-decoration:line-through;}
+  .focus-slot .fs-check{position:absolute;bottom:4px;right:8px;font-weight:900;font-size:13px;}
+  .focus-slot .fs-x{
+    position:absolute;top:2px;right:4px;color:var(--muted);
+    font-size:13px;padding:2px 4px;line-height:1;
+  }
+  .focus-slot.done .fs-x{color:rgba(255,255,255,0.8);}
+  .focus-slot.empty{
+    border-style:dashed;border-color:var(--tan);color:var(--tan-deep);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;padding:8px;
+  }
+  .fp-row{
+    background:var(--white);border:1px solid var(--card-line);border-radius:12px;
+    padding:10px 12px;margin-bottom:7px;cursor:pointer;
+    font-size:13.5px;font-weight:700;
+  }
+  .fp-row .fp-src{font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:700;}
+
+  /* 收集箱清單卡片 */
+  .list-card.inbox{border:1.5px dashed var(--tan);}
+
+  /* 護盾 */
+  .cal-cell.shield{background:rgba(198,162,110,0.4);color:var(--white);}
+  .shield-badge{font-size:11px;font-weight:900;color:var(--tan-deep);}
+
   /* 封存區 */
   .arch-row{
     background:var(--white);border:1px solid var(--card-line);border-radius:14px;
@@ -486,6 +527,7 @@
 <div class="fab-row" id="fabRow">
   <div class="fab" id="fabRewards" title="獎勵">🎁</div>
   <div class="fab" id="fabLists" title="特別任務">📋</div>
+  <div class="fab" id="fabInbox" title="快速記下">📥</div>
   <div class="fab" id="fabNewCell" title="新增任務">✎</div>
 </div>
 
@@ -659,6 +701,31 @@
 </div>
 
 <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+
+<!-- quick capture to inbox -->
+<div class="overlay" id="quickAddOverlay">
+  <div class="sheet">
+    <h3>快速記下</h3>
+    <input type="text" id="quickAddInput" placeholder="腦中閃過什麼就丟進來…" maxlength="80">
+    <div class="settings-desc" id="quickAddHint">會存進「📥 收集箱」，之後有空再整理。可以連續輸入。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="closeQuickAdd">關閉</button>
+      <button class="btn primary" id="saveQuickAdd">丟進去</button>
+    </div>
+  </div>
+</div>
+
+<!-- focus picker -->
+<div class="overlay" id="focusPickerOverlay">
+  <div class="sheet">
+    <h3>加入今日焦點</h3>
+    <div class="settings-desc" id="focusPickerHint">從未完成的任務中挑（最多 3 件）</div>
+    <div id="focusPickList" style="max-height:46vh;overflow-y:auto;"></div>
+    <div class="sheet-btns" style="margin-top:12px;">
+      <button class="btn ghost" id="closeFocusPicker">關閉</button>
+    </div>
+  </div>
+</div>
 
 <!-- add checklist -->
 <div class="overlay" id="addListOverlay">
@@ -896,6 +963,12 @@ zh: {
   archEmpty:'封存區是空的。在棋盤或清單的「⋯」選單裡可以選「封存」。',
   restore:'還原', removeBtn:'刪除', listsDoneDivider:'已完成',
   archMin:'至少要保留一個使用中的棋盤', toastArchived:'已封存！可到 設定 → 封存區 找到它',
+  focusTitle:'🎯 今日焦點', focusSub:'今天最重要的，最多 3 件',
+  focusNoCand:'目前沒有未完成的任務可以選',
+  inboxName:'📥 收集箱', toastInboxed:'已丟進收集箱！',
+  toastShieldEarned:'🛡️ 連續 7 天！獲得一個護盾（哪天漏打卡會自動補上）',
+  toastShieldUsed:n=>`🛡️ 護盾自動補上了 ${n} 天，連續紀錄沒斷！`,
+  shieldCount:n=>`🛡️×${n}`,
   monthTitle:(y,m)=>`${y} 年 ${m} 月`,
   backLists:'← 返回特別任務',
 },
@@ -954,6 +1027,12 @@ en: {
   archEmpty:'Archive is empty. Use "Archive" in a board\'s or list\'s "⋯" menu.',
   restore:'Restore', removeBtn:'Delete', listsDoneDivider:'Completed',
   archMin:'At least one active board must remain', toastArchived:'Archived! Find it in Settings → Archive',
+  focusTitle:'🎯 Today\'s Focus', focusSub:'Up to 3 things that matter most today',
+  focusNoCand:'No unfinished tasks to pick from',
+  inboxName:'📥 Inbox', toastInboxed:'Dropped into Inbox!',
+  toastShieldEarned:'🛡️ 7-day streak! You earned a shield (it auto-covers a missed day)',
+  toastShieldUsed:n=>`🛡️ Shield covered ${n} missed day(s) — streak unbroken!`,
+  shieldCount:n=>`🛡️×${n}`,
   monthTitle:(y,m)=>{const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${M[m-1]} ${y}`;},
   backLists:'← Back to Special Tasks',
 },
@@ -1019,7 +1098,9 @@ zh: {
   '#cancelDelReward':'取消','#confirmDelReward':'刪除',
   '#cancelRedeem':'取消','#confirmRedeem':'兌換',
   '#achieveOverlay .achieve-title':'成就達成！','#closeAchieve':'太棒了','#closeGacha':'收下！',
-  '#settingsBadge@title':'設定','#ticketBadge@title':'扭蛋圖鑑','#fabRewards@title':'獎勵','#fabNewCell@title':'新增任務','#fabLists@title':'特別任務',
+  '#settingsBadge@title':'設定','#ticketBadge@title':'扭蛋圖鑑','#fabRewards@title':'獎勵','#fabNewCell@title':'新增任務','#fabLists@title':'特別任務','#fabInbox@title':'快速記下',
+  '#quickAddOverlay h3':'快速記下','#quickAddInput@ph':'腦中閃過什麼就丟進來…','#quickAddHint':'會存進「📥 收集箱」，之後有空再整理。可以連續輸入。','#closeQuickAdd':'關閉','#saveQuickAdd':'丟進去',
+  '#focusPickerOverlay h3':'加入今日焦點','#focusPickerHint':'從未完成的任務中挑（最多 3 件）','#closeFocusPicker':'關閉',
   '#addListOverlay h3':'新增清單','#newListName@ph':'例如：今日採購清單、旅行物品清單','#cancelAddList':'取消','#saveAddList':'新增',
   '#listMenuRenameBtn':'修改名稱','#listMenuArchiveBtn':'封存清單','#listMenuDeleteBtn':'刪除清單','#listMenuCancelBtn':'取消',
   '#renameListOverlay h3':'修改清單名稱','#renameListText@ph':'清單名稱','#cancelRenameList':'取消','#saveRenameList':'儲存',
@@ -1047,7 +1128,9 @@ en: {
   '#cancelDelReward':'Cancel','#confirmDelReward':'Delete',
   '#cancelRedeem':'Cancel','#confirmRedeem':'Redeem',
   '#achieveOverlay .achieve-title':'Achievement unlocked!','#closeAchieve':'Awesome','#closeGacha':'Take it!',
-  '#settingsBadge@title':'Settings','#ticketBadge@title':'Gacha Collection','#fabRewards@title':'Rewards','#fabNewCell@title':'New task','#fabLists@title':'Special Tasks',
+  '#settingsBadge@title':'Settings','#ticketBadge@title':'Gacha Collection','#fabRewards@title':'Rewards','#fabNewCell@title':'New task','#fabLists@title':'Special Tasks','#fabInbox@title':'Quick capture',
+  '#quickAddOverlay h3':'Quick capture','#quickAddInput@ph':'Whatever just crossed your mind…','#quickAddHint':'Goes into your 📥 Inbox to sort out later. Keep typing to add more.','#closeQuickAdd':'Close','#saveQuickAdd':'Drop it in',
+  '#focusPickerOverlay h3':'Add to Today\'s Focus','#focusPickerHint':'Pick from unfinished tasks (up to 3)','#closeFocusPicker':'Close',
   '#addListOverlay h3':'New list','#newListName@ph':'e.g. Shopping list, Trip packing','#cancelAddList':'Cancel','#saveAddList':'Add',
   '#listMenuRenameBtn':'Rename','#listMenuArchiveBtn':'Archive list','#listMenuDeleteBtn':'Delete list','#listMenuCancelBtn':'Cancel',
   '#renameListOverlay h3':'Rename list','#renameListText@ph':'List name','#cancelRenameList':'Cancel','#saveRenameList':'Save',
@@ -1154,6 +1237,10 @@ let state = {
   wallpaper: 'classic',  // 背景桌布
   checklists: [],        // 特別任務清單
   activeList: null,      // 目前開啟的清單 id
+  focus: { day: null, ids: [] }, // 今日焦點（每天自動重置，最多 3 個）
+  shields: 0,            // 🛡️ streak 護盾數（連續 7 天得 1，上限 3）
+  shieldDays: {},        // 被護盾補上的日期
+  lastShieldDay: null,   // 最近一次發護盾的日期（防重複發）
   view: 'board' // 'board' | 'rewards' | 'gacha'
 };
 
@@ -1194,6 +1281,14 @@ async function loadState(){
     console.error('load error', e);
   }
   if(!state.activeBoard && state.boards.length) state.activeBoard = state.boards[0].id;
+  // 確保收集箱清單存在（固定在特別任務最上方，不可封存/刪除）
+  if(!state.checklists.find(l => l.id === 'inbox')){
+    state.checklists.unshift({ id:'inbox', name: t('inboxName'), items: [], note: '' });
+  }
+  // 今日焦點：跨日自動清空
+  if(!state.focus || state.focus.day !== todayKey()){
+    state.focus = { day: todayKey(), ids: [] };
+  }
   state.view = 'board'; // 每次開啟都從任務首頁開始
 }
 
@@ -1224,16 +1319,47 @@ function hasCheckinOn(key){
   const day = state.completions[key];
   return !!(day && Object.keys(day).length > 0);
 }
+function isActiveDay(key){
+  return hasCheckinOn(key) || !!(state.shieldDays && state.shieldDays[key]);
+}
 function computeStreak(){
   const d = new Date();
   // 今天還沒打卡 → 從昨天開始往回數（今天還有機會，streak 不算斷）
-  if(!hasCheckinOn(dateKeyOf(d))) d.setDate(d.getDate() - 1);
+  if(!isActiveDay(dateKeyOf(d))) d.setDate(d.getDate() - 1);
   let streak = 0;
-  while(hasCheckinOn(dateKeyOf(d))){
+  while(isActiveDay(dateKeyOf(d))){
     streak++;
     d.setDate(d.getDate() - 1);
   }
   return streak;
+}
+
+// 🛡️ 護盾：打卡當下，若昨天(含連續數天)漏了而護盾夠用，自動補上讓鏈不斷
+function applyShieldPatch(){
+  if(!(state.shields > 0)) return;
+  const gap = [];
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  while(!isActiveDay(dateKeyOf(d)) && gap.length <= state.shields && gap.length < 30){
+    gap.push(dateKeyOf(d));
+    d.setDate(d.getDate() - 1);
+  }
+  // 缺口前一天必須有活動（護盾補「中斷」，不無中生有）
+  if(gap.length > 0 && gap.length <= state.shields && isActiveDay(dateKeyOf(d))){
+    gap.forEach(k => { state.shieldDays[k] = true; });
+    state.shields -= gap.length;
+    showToast(t('toastShieldUsed', gap.length));
+  }
+}
+
+// 🛡️ 連續每滿 7 天發一個護盾（上限 3）
+function maybeEarnShield(streak){
+  const day = todayKey();
+  if(streak > 0 && streak % 7 === 0 && state.lastShieldDay !== day && (state.shields || 0) < 3){
+    state.shields = (state.shields || 0) + 1;
+    state.lastShieldDay = day;
+    showToast(t('toastShieldEarned'));
+  }
 }
 
 function activeBoards(){ return state.boards.filter(b => !b.archived); }
@@ -1288,6 +1414,12 @@ function render(){
     renderArchive(main);
     return;
   }
+
+  // 今日焦點（跨日自動重置）
+  if(!state.focus || state.focus.day !== todayKey()){
+    state.focus = { day: todayKey(), ids: [] };
+  }
+  main.appendChild(buildFocusCard());
 
   // tabs（只顯示未封存的棋盤）
   const actB = activeBoards();
@@ -1362,7 +1494,7 @@ function render(){
     <div class="streak-flame${checkedToday ? '' : ' dim'}">🔥</div>
     <div class="streak-info">
       <div class="streak-num">${t('streakDays', streak)}</div>
-      <div class="streak-sub">${checkedToday ? t('streakDone') : t('streakNot')}　·　${t('streakBest', Math.max(state.bestStreak || 0, streak))}</div>
+      <div class="streak-sub">${checkedToday ? t('streakDone') : t('streakNot')}　·　${t('streakBest', Math.max(state.bestStreak || 0, streak))}${(state.shields||0) > 0 ? '　·　<span class="shield-badge">' + t('shieldCount', state.shields) + '</span>' : ''}</div>
     </div>
     <div class="streak-arrow">▶</div>
   `;
@@ -1876,6 +2008,7 @@ function renderSettings(main){
 const HELP_SECTIONS = [
   { t:'💡 這是什麼？', b:`「每日任務」幫你<b>啟動日常小行動</b>。核心想法：任務越小越好——「喝一口水」「打開書本」都值得成為一格任務。最難的不是做完，而是開始，所以這裡<b>獎勵的是啟動本身</b>。<div class="hb-card">你會得到三種動力：<br>① 完成任務得 ★ 星星，兌換自訂的真實獎勵<br>② 獲得 🎫 扭蛋券，抽收藏品、集滿 48 格圖鑑<br>③ 🔥 連續打卡紀錄與 8 個里程碑成就</div>` },
   { t:'🗂️ 任務與棋盤', b:`<b>打卡</b>：點任務格＝完成（+1★＋彩帶），再點＝取消。<br><b>編輯／刪除任務</b>：點格子右上角「⋯」。<br><b>新增任務</b>：點右下角 ✎，任務拆到「小到不可能失敗」最有效——與其寫「運動 30 分鐘」，不如寫「換上運動服」。<br><b>棋盤分頁</b>：上方分頁可分類任務（如「每日待辦」「運動」）。點「＋」新增棋盤（可複製目前棋盤的任務）；分頁旁「⋯」可改名或刪除。` },
+  { t:'🎯 今日焦點・📥 收集箱・🛡️ 護盾', b:`<b>今日焦點</b>：首頁最上方的金框卡片，從所有任務中挑<b>最多 3 件</b>今天最重要的事（點「＋」挑選）。太多選擇會讓人不知從何開始——先看這三格就好。每天自動清空重新挑。<br><br><b>收集箱</b>：首頁下方 📥 一鍵打開「快速記下」，腦中閃過的念頭直接丟進去（可連續輸入），存進特別任務裡固定置頂的「📥 收集箱」，之後有空再整理。念頭不會再溜走。<br><br><b>護盾</b>：連續打卡每滿 7 天獲得一個 🛡️（上限 3 個）。哪天忘了打卡，下次打卡時護盾會<b>自動補上</b>那天，連續紀錄不斷。漏一天不等於全毀——回來就好。` },
   { t:'📋 特別任務（清單）與月曆', b:`<b>特別任務</b>：點首頁下方中間的 📋，適合一次性的事——採購清單、旅行打包、本月目標。建立清單後直接輸入項目按 Enter 就加入；打勾一項 <b>+2★</b>（比日常任務多，因為通常更費力），完成的項目會加上刪除線。項目旁「⋯」可編輯或刪除。<br><br><b>打卡月曆</b>：點首頁的 🔥 連續打卡卡片，可以看整個月哪些天有打卡（任何一個日常或特別任務都算）；<b>點任何一個日期</b>，還能看到那天完成了哪些項目——想回顧以前的紀錄，用日期找最快。<br><br><b>封存</b>：用完的清單或暫停的棋盤，在「⋯」選單選「封存」收進 設定 → 🗄️ 封存區，主畫面永遠只留現在進行中的事；封存不是刪除，隨時可以還原。<br><br><b>備註欄</b>：每個棋盤和每個清單的最下面都有一格 📝 小備註（100 字內），寫點提醒自己的話。` },
   { t:'★ 星星與真實獎勵', b:`每完成一個任務 +1★。點右上角 ★ 進入獎勵頁 → 「＋ 新增獎勵」設定<b>你自己想要的真實獎勵</b>與價格，積分夠了按「兌換」。獎勵卡片上的「⋯」可編輯或刪除。<div class="hb-card"><b>定價心法</b>（假設一天完成 5～8 個任務）：<br>小獎勵 30～50★＝一週內摸得到（一瓶飲料）<br>中獎勵 150★ 左右＝約三週（看場電影）<br>大獎勵 300～500★＝一兩個月（買件衣服）<br>一定要有一個很快能換到的小獎勵，動力系統才轉得起來！</div>` },
   { t:'🎫 扭蛋券與收藏圖鑑', b:`<b>拿券</b>：每天第一個完成的任務送 1 張（獎勵你的啟動！）；每累積完成 10 個任務再送 1 張。<br><b>抽獎</b>：點右上角 🎫 → 「轉一顆！」。會優先抽到你<b>還沒收集的</b>，不會一直重複。<br><b>圖鑑</b>：共 48 格——普通 28 種（70%）、稀有 14 種（25%）、傳說 6 種（5%）。全部集滿後，多的券自動換成 ★5。` },
@@ -1888,6 +2021,7 @@ const HELP_SECTIONS = [
 const HELP_SECTIONS_EN = [
   { t:'💡 What is this?', b:`Daily Quest helps you <b>start small daily actions</b>. The core idea: the smaller the task, the better — "sip water" or "open the book" all deserve a tile. The hardest part isn't finishing, it's starting, so this app <b>rewards the act of starting itself</b>.<div class="hb-card">Three sources of motivation:<br>① Complete tasks to earn ★ stars for real-life rewards you define<br>② Earn 🎫 gacha tickets to draw collectibles and fill the 48-item book<br>③ A 🔥 daily streak and 8 milestone achievements</div>` },
   { t:'🗂️ Tasks & boards', b:`<b>Check in</b>: tap a tile = done (+1★ + confetti), tap again = undo.<br><b>Edit / delete</b>: tap the "⋯" at the tile's top right.<br><b>Add tasks</b>: tap ✎ at the bottom right. Break tasks down until they're "too small to fail" — instead of "exercise 30 min", write "put on workout clothes".<br><b>Board tabs</b>: organize tasks into boards (e.g. "Daily", "Fitness"). Tap "+" to add a board (optionally copying current tasks); "⋯" next to a tab renames or deletes it.` },
+  { t:'🎯 Focus · 📥 Inbox · 🛡️ Shields', b:`<b>Today's Focus</b>: the gold-framed card at the top of the home page. Pick <b>up to 3</b> tasks that matter most today (tap "＋" to choose). Too many choices make it hard to start — just look at these three. Resets automatically each day.<br><br><b>Inbox</b>: tap 📥 at the bottom of the home page for quick capture — dump whatever crossed your mind (keep typing to add more). It all lands in the pinned "📥 Inbox" list under Special Tasks, to sort out whenever. Thoughts stop slipping away.<br><br><b>Shields</b>: every 7 consecutive days earns a 🛡️ (max 3). If you miss a day, your shield <b>automatically covers it</b> the next time you check in — the streak stays unbroken. One missed day isn't ruin; just come back.` },
   { t:'📋 Special Tasks (lists) & Calendar', b:`<b>Special Tasks</b>: tap 📋 at the bottom center of the home page — great for one-off things like shopping lists, trip packing, or monthly goals. After creating a list, just type an item and press Enter to add it. Each checked item earns <b>+2★</b> (more than daily tasks, since they usually take more effort), and done items get a strikethrough. The "⋯" next to each item edits or deletes it.<br><br><b>Check-in Calendar</b>: tap the 🔥 streak card to see which days you checked in (any daily or special task counts) — and <b>tap any date</b> to see exactly what you completed that day. The fastest way to look back at old records is by date.<br><br><b>Archive</b>: finished lists or paused boards can be archived via the "⋯" menu into Settings → 🗄️ Archive, so your main view only shows what's active now. Archiving isn't deleting — restore anytime.<br><br><b>Notes</b>: every board and every list has a 📝 quick-note field at the bottom (max 100 chars) for little reminders.` },
   { t:'★ Stars & real rewards', b:`Each completed task earns +1★. Tap ★ at the top right → "+ Add reward" to define <b>your own real-life rewards</b> and prices; when you have enough, tap "Redeem". The "⋯" on each card edits or deletes it.<div class="hb-card"><b>Pricing guide</b> (5–8 tasks/day):<br>Small 30–50★ = within a week (a drink)<br>Medium ~150★ = about 3 weeks (a movie)<br>Big 300–500★ = 1–2 months (a new shirt)<br>Always keep one cheap reward — early wins keep the loop spinning!</div>` },
   { t:'🎫 Gacha & collection', b:`<b>Earn tickets</b>: your first completed task each day earns 1 (a reward for starting!); every 10 completed tasks earn 1 more.<br><b>Draw</b>: tap 🎫 → "Spin!". Draws favor items <b>you don't own yet</b> — no frustrating duplicates.<br><b>Collection</b>: 48 items — Common 28 (70%), Rare 14 (25%), Legendary 6 (5%). Once complete, extra tickets convert to ★5 each.` },
@@ -1928,6 +2062,103 @@ function renderHelp(main){
   });
 }
 
+// ===== 🎯 今日焦點 =====
+function focusResolve(key){
+  // key 為任務 id 或 'cl_'+項目 id，回傳顯示與操作所需資訊
+  if(key.startsWith('cl_')){
+    const itemId = key.slice(3);
+    for(const l of state.checklists){
+      const it = l.items.find(i => i.id === itemId);
+      if(it) return { text: it.text, done: !!it.done, toggle: (el2) => toggleItem(l.id, it.id, el2) };
+    }
+  } else {
+    for(const b of state.boards){
+      const tk = (b.tasks || []).find(x => x.id === key);
+      if(tk) return { text: tk.text, done: isDone(tk.id), toggle: (el2) => toggleTask(b.id, tk.id, el2) };
+    }
+  }
+  return { text: t('deletedItem'), done: false, toggle: null };
+}
+
+function buildFocusCard(){
+  const wrap = document.createElement('div');
+  wrap.className = 'focus-wrap';
+  wrap.innerHTML = `
+    <div class="focus-head">
+      <div class="focus-title">${t('focusTitle')}</div>
+      <div class="focus-sub">${t('focusSub')}</div>
+    </div>
+    <div class="focus-slots"></div>
+  `;
+  const slots = wrap.querySelector('.focus-slots');
+
+  state.focus.ids.forEach(key => {
+    const info = focusResolve(key);
+    const slot = document.createElement('div');
+    slot.className = 'focus-slot' + (info.done ? ' done' : '');
+    slot.innerHTML = `
+      <span class="fs-text">${escapeHtml(info.text)}</span>
+      <span class="fs-x">✕</span>
+      <span class="fs-check">${info.done ? '✓' : ''}</span>
+    `;
+    slot.onclick = () => { if(info.toggle) info.toggle(slot); };
+    slot.querySelector('.fs-x').onclick = async (e) => {
+      e.stopPropagation();
+      state.focus.ids = state.focus.ids.filter(k => k !== key);
+      render();
+      await saveState();
+    };
+    slots.appendChild(slot);
+  });
+
+  for(let i = state.focus.ids.length; i < 3; i++){
+    const slot = document.createElement('div');
+    slot.className = 'focus-slot empty';
+    slot.textContent = '＋';
+    slot.onclick = openFocusPicker;
+    slots.appendChild(slot);
+  }
+  return wrap;
+}
+
+function openFocusPicker(){
+  const listEl = document.getElementById('focusPickList');
+  listEl.innerHTML = '';
+  const cands = [];
+  activeBoards().forEach(b => {
+    (b.tasks || []).forEach(tk => {
+      if(!isDone(tk.id) && !state.focus.ids.includes(tk.id)){
+        cands.push({ key: tk.id, text: tk.text, src: b.name });
+      }
+    });
+  });
+  state.checklists.filter(l => !l.archived).forEach(l => {
+    l.items.forEach(it => {
+      if(!it.done && !state.focus.ids.includes('cl_' + it.id)){
+        cands.push({ key: 'cl_' + it.id, text: it.text, src: '📋 ' + l.name });
+      }
+    });
+  });
+
+  if(!cands.length){
+    listEl.appendChild(el('div','empty-hint', t('focusNoCand')));
+  }
+  cands.slice(0, 40).forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'fp-row';
+    row.innerHTML = `${escapeHtml(c.text)}<div class="fp-src">${escapeHtml(c.src)}</div>`;
+    row.onclick = async () => {
+      if(state.focus.ids.length >= 3) return;
+      state.focus.ids.push(c.key);
+      hideOverlay('focusPickerOverlay');
+      render();
+      await saveState();
+    };
+    listEl.appendChild(row);
+  });
+  showOverlay('focusPickerOverlay');
+}
+
 // ===== 📝 備註欄（棋盤與清單共用，上限 100 字）=====
 function buildNote(obj){
   const wrap = document.createElement('div');
@@ -1959,8 +2190,9 @@ function renderLists(main){
     main.appendChild(el('div','empty-hint', t('noLists')));
   }
 
-  const isAllDone = l => l.items.length > 0 && l.items.every(i => i.done);
-  const activeL = visible.filter(l => !isAllDone(l));
+  const isAllDone = l => l.id !== 'inbox' && l.items.length > 0 && l.items.every(i => i.done);
+  const inboxL = visible.filter(l => l.id === 'inbox');
+  const activeL = inboxL.concat(visible.filter(l => l.id !== 'inbox' && !isAllDone(l)));
   const doneL = visible.filter(isAllDone);
 
   const buildListCard = (list) => {
@@ -1980,7 +2212,12 @@ function renderLists(main){
       <div class="lc-menu">⋯</div>
       <div class="lc-arrow">▶</div>
     `;
-    card.querySelector('.lc-menu').onclick = (e) => { e.stopPropagation(); openListMenu(list.id); };
+    if(list.id === 'inbox'){
+      card.classList.add('inbox');
+      card.querySelector('.lc-menu').style.display = 'none'; // 收集箱不可改名/封存/刪除
+    } else {
+      card.querySelector('.lc-menu').onclick = (e) => { e.stopPropagation(); openListMenu(list.id); };
+    }
     card.onclick = () => { state.activeList = list.id; state.view = 'listDetail'; render(); };
     if(isAllDone(list)) card.classList.add('alldone');
     return card;
@@ -2114,8 +2351,10 @@ async function toggleItem(listId, itemId, rowEl){
       state.tickets += 1;
       showToast(t('toastMeterTicket', TICKET_EVERY));
     }
+    if(firstOfToday) applyShieldPatch();
     const s = computeStreak();
     if(s > (state.bestStreak || 0)) state.bestStreak = s;
+    maybeEarnShield(s);
     checkMilestone();
   }
   render();
@@ -2152,7 +2391,8 @@ function renderCalendar(main){
     const isToday = key === todayK;
     const isFuture = key > todayK;
     const sel = key === calSelDay;
-    cells += `<div class="cal-cell${did ? ' did' : ''}${isToday ? ' today' : ''}${isFuture ? ' future' : ''}${sel ? ' sel' : ''}${!isFuture ? ' tappable' : ''}"${!isFuture ? ` data-key="${key}"` : ''}>${d}</div>`;
+    const shielded = !did && !!state.shieldDays[key];
+    cells += `<div class="cal-cell${did ? ' did' : ''}${shielded ? ' shield' : ''}${isToday ? ' today' : ''}${isFuture ? ' future' : ''}${sel ? ' sel' : ''}${!isFuture ? ' tappable' : ''}"${!isFuture ? ` data-key="${key}"` : ''}>${shielded ? '🛡' : d}</div>`;
   }
 
   const wd = t('weekdays');
@@ -2320,8 +2560,10 @@ async function toggleTask(boardId, taskId, cellEl){
       state.tickets += 1;
       showToast(t('toastMeterTicket', TICKET_EVERY));
     }
+    if(firstOfToday) applyShieldPatch();
     const s = computeStreak();
     if(s > (state.bestStreak || 0)) state.bestStreak = s;
+    maybeEarnShield(s);
     checkMilestone();
   }
   render();
@@ -2579,6 +2821,30 @@ document.getElementById('ticketBadge').onclick = () => { state.view = 'gacha'; r
 document.getElementById('closeGacha').onclick = () => { hideOverlay('gachaOverlay'); state.view = 'gacha'; render(); };
 document.getElementById('fabRewards').onclick = () => { state.view = 'rewards'; render(); };
 document.getElementById('fabLists').onclick = () => { state.view = 'lists'; render(); };
+document.getElementById('fabInbox').onclick = () => {
+  document.getElementById('quickAddInput').value = '';
+  showOverlay('quickAddOverlay');
+  setTimeout(() => document.getElementById('quickAddInput').focus(), 100);
+};
+document.getElementById('closeQuickAdd').onclick = () => hideOverlay('quickAddOverlay');
+async function quickCapture(){
+  const inp = document.getElementById('quickAddInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  let inbox = state.checklists.find(l => l.id === 'inbox');
+  if(!inbox){
+    inbox = { id:'inbox', name: t('inboxName'), items: [], note: '' };
+    state.checklists.unshift(inbox);
+  }
+  inbox.items.push({ id: uid(), text, done: false, doneDay: null });
+  inp.value = '';
+  inp.focus(); // 留在原地，方便連續倒念頭
+  showToast(t('toastInboxed'));
+  await saveState();
+}
+document.getElementById('saveQuickAdd').onclick = quickCapture;
+document.getElementById('quickAddInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') quickCapture(); });
+document.getElementById('closeFocusPicker').onclick = () => hideOverlay('focusPickerOverlay');
 
 // --- 特別任務：清單 CRUD ---
 document.getElementById('cancelAddList').onclick = () => hideOverlay('addListOverlay');
