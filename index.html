@@ -333,6 +333,15 @@
     background:var(--white);border:1.5px solid var(--card-line);color:var(--muted);
   }
   .lang-btn.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
+  .wp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  .wp-item{text-align:center;cursor:pointer;}
+  .wp-swatch{
+    height:52px;border-radius:12px;border:2px solid var(--card-line);
+    background-repeat:repeat;
+  }
+  .wp-item.on .wp-swatch{border-color:var(--ink);box-shadow:0 0 0 2px var(--white) inset;}
+  .wp-name{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;}
+  .wp-item.on .wp-name{color:var(--ink);}
 </style>
 </head>
 <body>
@@ -659,6 +668,7 @@ zh: {
   delBoardMin:'至少要保留一個棋盤，無法刪除', delBoardQ:n=>`刪除「${n}」這個棋盤？`,
   setHelpTitle:'📖 使用說明', setHelpDesc:'第一次使用？所有功能的操作方式、獎勵定價心法、同步教學都在這裡。', setHelpBtn:'打開使用說明',
   setLangTitle:'🌐 Language / 語言',
+  setWpTitle:'🖼️ 背景桌布', setWpDesc:'挑一款喜歡的背景，立即套用。',
   setSyncTitle:'☁️ 雲端同步', setSyncOn:'已啟用',
   setSyncNoFb:'尚未設定 Firebase。設定完成後，多台裝置可以共用同一份資料、即時同步。在那之前，可以先用下面的「匯出備份」在裝置間搬資料。',
   setSyncOffDesc:'啟用後，這份資料會存到雲端，其他裝置輸入同一組「同步碼」就能共用並即時同步。',
@@ -698,6 +708,7 @@ en: {
   delBoardMin:'At least one board must remain', delBoardQ:n=>`Delete board "${n}"?`,
   setHelpTitle:'📖 User Guide', setHelpDesc:'First time here? How everything works, reward pricing tips, and sync tutorial.', setHelpBtn:'Open User Guide',
   setLangTitle:'🌐 Language / 語言',
+  setWpTitle:'🖼️ Wallpaper', setWpDesc:'Pick a background — applied instantly.',
   setSyncTitle:'☁️ Cloud Sync', setSyncOn:'Enabled',
   setSyncNoFb:'Firebase not configured yet. Once set up, multiple devices can share the same data in real time. Meanwhile, use "Export backup" below to move data between devices.',
   setSyncOffDesc:'When enabled, your data is stored in the cloud; other devices enter the same sync code to share it in real time.',
@@ -715,6 +726,38 @@ function t(key, ...args){
   return typeof v === 'function' ? v(...args) : v;
 }
 function itemName(item){ return state.lang === 'en' ? (item.en || item.name) : item.name; }
+
+// ===== 🖼️ 背景桌布 =====
+const WALLPAPERS = [
+  { id:'classic', zh:'星光打卡', en:'Starlight', bg:'#F3EEE4', size:'260px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g fill='none' stroke='#C6A26E' stroke-width='2' opacity='0.12' stroke-linecap='round' stroke-linejoin='round'><path d='M40 42l3.5 7.5 8 .9-6 5.4 1.7 7.9-7.2-4.2-7.2 4.2 1.7-7.9-6-5.4 8-.9z'/><circle cx='178' cy='38' r='11'/><path d='M172 38l4 4 7-8'/><path d='M226 130l3 9 9 3-9 3-3 9-3-9-9-3 9-3z'/><circle cx='92' cy='158' r='3' fill='#C6A26E' stroke='none' opacity='0.5'/><path d='M148 208l3.5 7.5 8 .9-6 5.4 1.7 7.9-7.2-4.2-7.2 4.2 1.7-7.9-6-5.4 8-.9z'/><path d='M34 192l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z'/></g></svg>` },
+  { id:'plain', zh:'純色簡約', en:'Plain', bg:'#F3EEE4', size:'260px', svg:null },
+  { id:'dots', zh:'奶茶圓點', en:'Milky Dots', bg:'#F4EEE2', size:'72px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72'><g fill='#C6A26E' opacity='0.14'><circle cx='18' cy='18' r='4'/><circle cx='54' cy='54' r='4'/></g></svg>` },
+  { id:'grid', zh:'手帳格紋', en:'Journal Grid', bg:'#F5F0E6', size:'40px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M40 0H0v40' fill='none' stroke='#C6A26E' stroke-width='1.2' opacity='0.14'/></svg>` },
+  { id:'waves', zh:'微風水波', en:'Breeze', bg:'#EDF1EC', size:'120px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='80'><g fill='none' stroke='#8FA98B' stroke-width='2' opacity='0.18' stroke-linecap='round'><path d='M-10 24q15-10 30 0t30 0t30 0t30 0t30 0'/><path d='M-10 60q15-10 30 0t30 0t30 0t30 0t30 0'/></g></svg>` },
+  { id:'leaves', zh:'青葉小徑', en:'Leafy Path', bg:'#EFF2E5', size:'150px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><g fill='none' stroke='#8FA06B' stroke-width='2' opacity='0.16' stroke-linecap='round' stroke-linejoin='round'><path d='M28 62Q28 34 56 26Q50 56 28 62Z'/><path d='M32 58Q42 46 52 30'/><path d='M100 128Q100 100 128 92Q122 122 100 128Z'/><path d='M104 124Q114 112 124 96'/><circle cx='118' cy='38' r='2.5' fill='#8FA06B' stroke='none'/><circle cx='44' cy='116' r='2.5' fill='#8FA06B' stroke='none'/></g></svg>` },
+  { id:'blossom', zh:'櫻花點點', en:'Blossom', bg:'#F7EEEA', size:'160px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><g fill='none' stroke='#D19A9A' stroke-width='2' opacity='0.17'><g><circle cx='44' cy='36' r='6'/><circle cx='44' cy='52' r='6'/><circle cx='36' cy='44' r='6'/><circle cx='52' cy='44' r='6'/><circle cx='44' cy='44' r='2.5' fill='#D19A9A' stroke='none'/></g><g><circle cx='116' cy='108' r='6'/><circle cx='116' cy='124' r='6'/><circle cx='108' cy='116' r='6'/><circle cx='124' cy='116' r='6'/><circle cx='116' cy='116' r='2.5' fill='#D19A9A' stroke='none'/></g><circle cx='128' cy='40' r='2.5' fill='#D19A9A' stroke='none'/><circle cx='32' cy='128' r='2.5' fill='#D19A9A' stroke='none'/></g></svg>` },
+  { id:'hearts', zh:'暖心時光', en:'Warm Hearts', bg:'#F7ECEC', size:'140px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><g fill='none' stroke='#D48C8C' stroke-width='2' opacity='0.16' stroke-linejoin='round'><path d='M38 52C31 45 26 41 26 35a6 6 0 0 1 12-1a6 6 0 0 1 12 1c0 6-5 10-12 17z'/><path d='M104 118C97 111 92 107 92 101a6 6 0 0 1 12-1a6 6 0 0 1 12 1c0 6-5 10-12 17z'/><circle cx='108' cy='36' r='2.5' fill='#D48C8C' stroke='none'/><circle cx='34' cy='112' r='2.5' fill='#D48C8C' stroke='none'/></g></svg>` },
+  { id:'night', zh:'晚安星空', en:'Goodnight Sky', bg:'#EFEDF5', size:'200px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><g fill='#A99BC0' opacity='0.18'><path d='M60 34a17 17 0 1 0 6 33a14 14 0 1 1-6-33z'/><path d='M146 128l2.4 6 6 2.4-6 2.4-2.4 6-2.4-6-6-2.4 6-2.4z'/><circle cx='150' cy='48' r='2.5'/><circle cx='46' cy='150' r='2.5'/><circle cx='108' cy='92' r='1.8'/></g></svg>` },
+  { id:'snacks', zh:'雜貨鋪點心', en:'Snack Shop', bg:'#F5EFE3', size:'200px',
+    svg:`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><g fill='none' stroke='#C6A26E' stroke-width='2' opacity='0.14' stroke-linecap='round'><rect x='34' y='42' width='26' height='20' rx='5'/><path d='M60 47h6a5 5 0 0 1 0 10h-6'/><path d='M42 34v-5M52 34v-5'/><circle cx='138' cy='140' r='13'/><circle cx='133' cy='136' r='1.6' fill='#C6A26E' stroke='none'/><circle cx='143' cy='139' r='1.6' fill='#C6A26E' stroke='none'/><circle cx='137' cy='146' r='1.6' fill='#C6A26E' stroke='none'/><path d='M128 52l14 14M128 66l14-14' /><circle cx='52' cy='142' r='7'/><path d='M45 142h-8M67 142h-8' transform='rotate(45 52 142)'/></g></svg>` },
+];
+
+function applyWallpaper(){
+  const wp = WALLPAPERS.find(w => w.id === state.wallpaper) || WALLPAPERS[0];
+  document.body.style.backgroundColor = wp.bg;
+  document.body.style.backgroundImage = wp.svg
+    ? `url("data:image/svg+xml,${encodeURIComponent(wp.svg)}")`
+    : 'none';
+  document.body.style.backgroundSize = wp.size;
+}
 
 // 靜態彈窗文字（依語言套用）
 const STATIC_TEXT = {
@@ -858,6 +901,7 @@ let state = {
   userName: '',          // 使用者暱稱
   nameAsked: false,      // 是否已問過名字（避免每次開啟都跳）
   lang: IS_ZH_DEVICE ? 'zh' : 'en', // 介面語言（首次依裝置語言自動偵測）
+  wallpaper: 'classic',  // 背景桌布
   view: 'board' // 'board' | 'rewards' | 'gacha'
 };
 
@@ -944,6 +988,7 @@ function render(){
   document.getElementById('starCount').textContent = state.points;
   document.getElementById('ticketCount').textContent = state.tickets;
   applyStaticLang();
+  applyWallpaper();
   const boardTitle = state.userName ? t('boardTitleOf', state.userName) : t('appTitle');
   const titles = { board: boardTitle, rewards:t('rewards'), gacha:t('gacha'), settings:t('settings'), help:t('help') };
   document.getElementById('pageTitle').textContent = titles[state.view] || t('appTitle');
@@ -1412,6 +1457,35 @@ function renderSettings(main){
   main.appendChild(langCard);
   langCard.querySelector('#setLangZh').onclick = async () => { state.lang = 'zh'; render(); await saveState(); };
   langCard.querySelector('#setLangEn').onclick = async () => { state.lang = 'en'; render(); await saveState(); };
+
+  // --- 背景桌布 ---
+  const wpCard = document.createElement('div');
+  wpCard.className = 'settings-card';
+  wpCard.innerHTML = `
+    <div class="settings-title">${t('setWpTitle')}</div>
+    <div class="settings-desc">${t('setWpDesc')}</div>
+    <div class="wp-grid" id="wpGrid"></div>
+  `;
+  main.appendChild(wpCard);
+  const wpGrid = wpCard.querySelector('#wpGrid');
+  WALLPAPERS.forEach(wp => {
+    const item = document.createElement('div');
+    item.className = 'wp-item' + ((state.wallpaper || 'classic') === wp.id ? ' on' : '');
+    const sw = document.createElement('div');
+    sw.className = 'wp-swatch';
+    sw.style.backgroundColor = wp.bg;
+    if(wp.svg){
+      sw.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(wp.svg)}")`;
+      sw.style.backgroundSize = '86px';
+    }
+    const nm = document.createElement('div');
+    nm.className = 'wp-name';
+    nm.textContent = state.lang === 'en' ? wp.en : wp.zh;
+    item.appendChild(sw);
+    item.appendChild(nm);
+    item.onclick = async () => { state.wallpaper = wp.id; render(); await saveState(); };
+    wpGrid.appendChild(item);
+  });
 
   // --- 使用說明入口 ---
   const helpCard = document.createElement('div');
