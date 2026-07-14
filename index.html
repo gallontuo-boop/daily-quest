@@ -367,7 +367,7 @@
     <input type="text" id="newBoardName" placeholder="例如：工作、健康">
     <label class="copy-check">
       <input type="checkbox" id="copyCurrentBoard">
-      <span>複製目前棋盤的任務內容</span>
+      <span id="copyTasksLabel">複製目前棋盤的任務內容</span>
     </label>
     <div class="sheet-btns">
       <button class="btn ghost" id="cancelBoard">取消</button>
@@ -381,7 +381,7 @@
   <div class="sheet">
     <h3>新增任務</h3>
     <input type="text" id="newTaskText" placeholder="越小越好，例如：喝一口水、打開書本">
-    <div style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">💡 小到不可能失敗的任務，最容易讓自己啟動</div>
+    <div id="taskHint" style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">💡 小到不可能失敗的任務，最容易讓自己啟動</div>
     <div class="sheet-btns">
       <button class="btn ghost" id="cancelTask">取消</button>
       <button class="btn primary" id="saveTask">新增</button>
@@ -481,7 +481,7 @@
   <div class="sheet">
     <h3>你的同步碼</h3>
     <div class="sync-code-box" id="syncCodeDisplay">XXXX-XXXX-XXXX</div>
-    <div class="settings-desc">請抄下或截圖保存。在另一台裝置（iPad 等）打開 App → ⚙️ 設定 → 「我有同步碼」→ 輸入這組碼，兩台裝置就會共用同一份資料。</div>
+    <div class="settings-desc" id="syncCodeDesc">請抄下或截圖保存。</div>
     <div class="sheet-btns">
       <button class="btn ghost" id="copySyncCode">複製</button>
       <button class="btn primary" id="doneSyncCode">我記下了</button>
@@ -494,7 +494,7 @@
   <div class="sheet">
     <h3>輸入同步碼</h3>
     <input type="text" id="syncCodeInput" placeholder="例如：AB3D-EF5G-HJ7K" autocapitalize="characters" autocomplete="off">
-    <div class="settings-desc">⚠️ 連結後，這台裝置會改用「雲端上的資料」，目前這台裝置的本機資料會被取代（建議先匯出備份）。</div>
+    <div class="settings-desc" id="enterCodeDesc">⚠️</div>
     <div class="sheet-btns">
       <button class="btn ghost" id="cancelEnterCode">取消</button>
       <button class="btn primary" id="confirmEnterCode">連結</button>
@@ -506,7 +506,7 @@
 <div class="overlay" id="stopSyncOverlay">
   <div class="sheet">
     <h3>停止雲端同步？</h3>
-    <div class="settings-desc">這台裝置的資料會保留，只是不再與雲端同步。之後可以隨時用同一組同步碼重新連結。</div>
+    <div class="settings-desc" id="stopSyncDesc"></div>
     <div class="sheet-btns">
       <button class="btn ghost" id="cancelStopSync">取消</button>
       <button class="btn danger" id="confirmStopSync">停止同步</button>
@@ -518,7 +518,7 @@
 <div class="overlay" id="importOverlay">
   <div class="sheet">
     <h3>匯入這份備份？</h3>
-    <div class="settings-desc">⚠️ 匯入會以備份檔的內容取代目前的資料（任務、積分、圖鑑、暱稱全部）。</div>
+    <div class="settings-desc" id="importDesc">⚠️</div>
     <div class="sheet-btns">
       <button class="btn ghost" id="cancelImport">取消</button>
       <button class="btn primary" id="confirmImport">確定匯入</button>
@@ -533,7 +533,7 @@
   <div class="sheet">
     <h3>怎麼稱呼你？</h3>
     <input type="text" id="userNameInput" placeholder="你的名字或暱稱" maxlength="10">
-    <div style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">之後點左上角的標題，隨時可以改</div>
+    <div id="nameHint" style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">之後點左上角的標題，隨時可以改</div>
     <div class="sheet-btns">
       <button class="btn ghost" id="skipName">先跳過</button>
       <button class="btn primary" id="saveName">儲存</button>
@@ -625,64 +625,217 @@ const FIREBASE_CONFIG = {
 };
 const firebaseReady = () => !!FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('PASTE');
 
+// ===== 🌐 語言（中/英）=====
+const IS_ZH_DEVICE = (navigator.language || 'zh').toLowerCase().startsWith('zh');
+const L0 = (zh, en) => IS_ZH_DEVICE ? zh : en; // 首次建立資料時的預設文字
+
+const I18N = {
+zh: {
+  appTitle:'每日任務', boardTitleOf:n=>`${n} 的每日任務`,
+  rewards:'積分獎勵', gacha:'扭蛋圖鑑', settings:'設定', help:'使用說明',
+  addBoardTab:'+ 新增棋盤', noBoard:'還沒有棋盤，點上方新增一個吧', addTaskCell:'+ 新增任務',
+  streakDays:n=>`連續打卡 <b>${n}</b> 天`, streakDone:'今天已打卡',
+  streakNot:'今天還沒打卡，完成 1 個任務就算', streakBest:n=>`最佳紀錄 ${n} 天`,
+  progressDone:n=>`累積完成 ${n} 個`, progressNext:n=>`下個成就 ${n}`,
+  backTasks:'← 返回任務', backSettings:'← 返回設定',
+  myPoints:'我的積分', noRewards:'還沒有獎勵，新增一個吧', redeem:'兌換',
+  addReward:'+ 新增獎勵', editOrDelete:'編輯或刪除',
+  ticketsX:n=>`🎫 扭蛋券 × ${n}`, spin:'轉一顆！', noTickets:'先去完成任務拿券',
+  meterHint:n=>`再完成 ${n} 個任務，就有下一張券（每天第一個任務也送 1 張）`,
+  collBook:'收藏圖鑑', collected:(a,b)=>`已收集 ${a} / ${b}`, lockedName:'？？？',
+  collFull:'🎉 圖鑑已全數收集！這張券換成 ★5', gotItem:n=>`獲得「${n}」！`,
+  toastSyncPull:'☁️ 已同步雲端最新資料', toastConnecting:'☁️ 連線中…',
+  toastNoConn:'無法連線，請確認網路與 Firebase 設定',
+  toastCodeNotFound:'找不到這個同步碼，請確認輸入是否正確',
+  toastLinked:'☁️ 連結成功，資料已同步', toastLinkFail:'連結失敗，請稍後再試',
+  toastSyncStopped:'已停止雲端同步（本機資料保留）', toastExported:'💾 已匯出備份檔',
+  toastCopied:'已複製同步碼', toastCopyFail:'無法自動複製，請長按同步碼手動複製',
+  toastImported:'✅ 匯入完成', toastBadBackup:'這不是有效的備份檔',
+  toastDailyTicket:'🎫 今日啟動成功！獲得 1 張扭蛋券',
+  toastMeterTicket:n=>`🎫 累積完成 ${n} 個任務！獲得 1 張扭蛋券`,
+  toastRedeemed:n=>`🎁 兌換成功！好好享受「${n}」`, toastHiName:n=>`嗨，${n}！這是你的專屬系統了 ✨`,
+  achieveN:n=>`已累積完成 ${n} 個任務`,
+  delRewardQ:n=>`刪除「${n}」這個獎勵？`, redeemQ:(c,n)=>`用 ★${c} 兌換「${n}」？`,
+  delBoardMin:'至少要保留一個棋盤，無法刪除', delBoardQ:n=>`刪除「${n}」這個棋盤？`,
+  setHelpTitle:'📖 使用說明', setHelpDesc:'第一次使用？所有功能的操作方式、獎勵定價心法、同步教學都在這裡。', setHelpBtn:'打開使用說明',
+  setLangTitle:'🌐 Language / 語言',
+  setSyncTitle:'☁️ 雲端同步', setSyncOn:'已啟用',
+  setSyncNoFb:'尚未設定 Firebase。設定完成後，多台裝置可以共用同一份資料、即時同步。在那之前，可以先用下面的「匯出備份」在裝置間搬資料。',
+  setSyncOffDesc:'啟用後，這份資料會存到雲端，其他裝置輸入同一組「同步碼」就能共用並即時同步。',
+  btnNewSync:'建立同步碼（第一台裝置）', btnHaveCode:'我有同步碼（第二台裝置）',
+  syncStatus:t=>`上次同步：${t}。在另一台裝置的設定頁選「我有同步碼」並輸入這組碼即可共用資料。`,
+  btnCopyCode:'複製同步碼', btnStopSync:'停止同步',
+  setBkTitle:'💾 資料備份', setBkDesc:'匯出會把所有資料（任務、積分、圖鑑、連續紀錄、暱稱）存成一個檔案；在任何裝置匯入即可還原。建議定期匯出保存。',
+  btnExport:'匯出備份', btnImport:'匯入備份',
+  setNameTitle:'✏️ 暱稱', nameCurrent:n=>`目前暱稱：${n}`, nameNone:'還沒設定暱稱', btnEditName:'修改暱稱',
+},
+en: {
+  appTitle:'Daily Quest', boardTitleOf:n=>`${n}'s Daily Quest`,
+  rewards:'Rewards', gacha:'Gacha Collection', settings:'Settings', help:'User Guide',
+  addBoardTab:'+ New board', noBoard:'No boards yet — tap above to add one', addTaskCell:'+ New task',
+  streakDays:n=>`<b>${n}</b>-day streak`, streakDone:'Checked in today',
+  streakNot:'Not yet today — 1 task counts', streakBest:n=>`Best: ${n} days`,
+  progressDone:n=>`${n} tasks done`, progressNext:n=>`Next milestone: ${n}`,
+  backTasks:'← Back to tasks', backSettings:'← Back to Settings',
+  myPoints:'My points', noRewards:'No rewards yet — add one', redeem:'Redeem',
+  addReward:'+ Add reward', editOrDelete:'Edit or delete',
+  ticketsX:n=>`🎫 Tickets × ${n}`, spin:'Spin!', noTickets:'Complete tasks to earn tickets',
+  meterHint:n=>`${n} more tasks for the next ticket (your first task each day earns one too)`,
+  collBook:'Collection', collected:(a,b)=>`Collected ${a} / ${b}`, lockedName:'???',
+  collFull:'🎉 Collection complete! Ticket converted to ★5', gotItem:n=>`You got "${n}"!`,
+  toastSyncPull:'☁️ Synced latest cloud data', toastConnecting:'☁️ Connecting…',
+  toastNoConn:'Cannot connect — check network & Firebase setup',
+  toastCodeNotFound:'Sync code not found — please check your input',
+  toastLinked:'☁️ Linked! Data synced', toastLinkFail:'Link failed — please try again',
+  toastSyncStopped:'Cloud sync stopped (local data kept)', toastExported:'💾 Backup exported',
+  toastCopied:'Sync code copied', toastCopyFail:'Copy failed — long-press the code to copy manually',
+  toastImported:'✅ Import complete', toastBadBackup:'Not a valid backup file',
+  toastDailyTicket:'🎫 Started today! +1 gacha ticket',
+  toastMeterTicket:n=>`🎫 ${n} tasks done! +1 gacha ticket`,
+  toastRedeemed:n=>`🎁 Redeemed! Enjoy "${n}"`, toastHiName:n=>`Hi ${n}! This is your space now ✨`,
+  achieveN:n=>`${n} tasks completed in total`,
+  delRewardQ:n=>`Delete reward "${n}"?`, redeemQ:(c,n)=>`Redeem "${n}" for ★${c}?`,
+  delBoardMin:'At least one board must remain', delBoardQ:n=>`Delete board "${n}"?`,
+  setHelpTitle:'📖 User Guide', setHelpDesc:'First time here? How everything works, reward pricing tips, and sync tutorial.', setHelpBtn:'Open User Guide',
+  setLangTitle:'🌐 Language / 語言',
+  setSyncTitle:'☁️ Cloud Sync', setSyncOn:'Enabled',
+  setSyncNoFb:'Firebase not configured yet. Once set up, multiple devices can share the same data in real time. Meanwhile, use "Export backup" below to move data between devices.',
+  setSyncOffDesc:'When enabled, your data is stored in the cloud; other devices enter the same sync code to share it in real time.',
+  btnNewSync:'Create sync code (first device)', btnHaveCode:'I have a sync code (second device)',
+  syncStatus:t=>`Last synced: ${t}. On another device, choose "I have a sync code" in Settings and enter this code.`,
+  btnCopyCode:'Copy sync code', btnStopSync:'Stop sync',
+  setBkTitle:'💾 Backup', setBkDesc:'Export saves everything (tasks, points, collection, streak, nickname) to one file; import it on any device to restore. Do it regularly.',
+  btnExport:'Export backup', btnImport:'Import backup',
+  setNameTitle:'✏️ Nickname', nameCurrent:n=>`Current nickname: ${n}`, nameNone:'No nickname yet', btnEditName:'Change nickname',
+},
+};
+function t(key, ...args){
+  const pack = I18N[state.lang] || I18N.zh;
+  const v = (key in pack) ? pack[key] : I18N.zh[key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+function itemName(item){ return state.lang === 'en' ? (item.en || item.name) : item.name; }
+
+// 靜態彈窗文字（依語言套用）
+const STATIC_TEXT = {
+zh: {
+  '#boardOverlay h3':'新增棋盤','#newBoardName@ph':'例如：工作、健康','#copyTasksLabel':'複製目前棋盤的任務內容','#cancelBoard':'取消','#saveBoard':'新增',
+  '#taskOverlay h3':'新增任務','#newTaskText@ph':'越小越好，例如：喝一口水、打開書本','#taskHint':'💡 小到不可能失敗的任務，最容易讓自己啟動','#cancelTask':'取消','#saveTask':'新增',
+  '#boardMenuEditBtn':'修改名稱','#boardMenuDeleteBtn':'刪除棋盤','#boardMenuCancelBtn':'取消',
+  '#renameBoardOverlay h3':'修改棋盤名稱','#renameBoardText@ph':'棋盤名稱','#cancelRenameBoard':'取消','#saveRenameBoard':'儲存',
+  '#cancelDelBoard':'取消','#confirmDelBoard':'刪除',
+  '#menuEditBtn':'編輯文字','#menuDeleteBtn':'刪除','#menuCancelBtn':'取消',
+  '#editTaskOverlay h3':'編輯任務文字','#editTaskText@ph':'任務內容','#cancelEditTask':'取消','#saveEditTask':'儲存',
+  '#delOverlay h3':'刪除這個任務？','#cancelDel':'取消','#confirmDel':'刪除',
+  '#rewardOverlay h3':'新增獎勵','#newRewardName@ph':'例如：買 Switch','#newRewardCost@ph':'所需積分，例如 100','#cancelReward':'取消','#saveReward':'新增',
+  '#syncCodeOverlay h3':'你的同步碼','#syncCodeDesc':'請抄下或截圖保存。在另一台裝置打開 App → ⚙️ 設定 → 「我有同步碼」→ 輸入這組碼，兩台裝置就會共用同一份資料。','#copySyncCode':'複製','#doneSyncCode':'我記下了',
+  '#enterCodeOverlay h3':'輸入同步碼','#syncCodeInput@ph':'例如：AB3D-EF5G-HJ7K','#enterCodeDesc':'⚠️ 連結後，這台裝置會改用「雲端上的資料」，目前的本機資料會被取代（建議先匯出備份）。','#cancelEnterCode':'取消','#confirmEnterCode':'連結',
+  '#stopSyncOverlay h3':'停止雲端同步？','#stopSyncDesc':'這台裝置的資料會保留，只是不再與雲端同步。之後可以隨時用同一組同步碼重新連結。','#cancelStopSync':'取消','#confirmStopSync':'停止同步',
+  '#importOverlay h3':'匯入這份備份？','#importDesc':'⚠️ 匯入會以備份檔的內容取代目前的資料（任務、積分、圖鑑、暱稱全部）。','#cancelImport':'取消','#confirmImport':'確定匯入',
+  '#nameOverlay h3':'怎麼稱呼你？','#userNameInput@ph':'你的名字或暱稱','#nameHint':'之後點左上角的標題，隨時可以改','#skipName':'先跳過','#saveName':'儲存',
+  '#rewardMenuEditBtn':'編輯','#rewardMenuDeleteBtn':'刪除','#rewardMenuCancelBtn':'取消',
+  '#editRewardOverlay h3':'編輯獎勵','#editRewardName@ph':'獎勵名稱','#editRewardCost@ph':'所需積分','#cancelEditReward':'取消','#saveEditReward':'儲存',
+  '#cancelDelReward':'取消','#confirmDelReward':'刪除',
+  '#cancelRedeem':'取消','#confirmRedeem':'兌換',
+  '#achieveOverlay .achieve-title':'成就達成！','#closeAchieve':'太棒了','#closeGacha':'收下！',
+  '#settingsBadge@title':'設定','#ticketBadge@title':'扭蛋圖鑑','#fabRewards@title':'獎勵','#fabNewCell@title':'新增任務',
+},
+en: {
+  '#boardOverlay h3':'New board','#newBoardName@ph':'e.g. Work, Health','#copyTasksLabel':'Copy tasks from the current board','#cancelBoard':'Cancel','#saveBoard':'Add',
+  '#taskOverlay h3':'New task','#newTaskText@ph':'The smaller the better, e.g. "sip water"','#taskHint':'💡 Tasks too small to fail are the easiest to start','#cancelTask':'Cancel','#saveTask':'Add',
+  '#boardMenuEditBtn':'Rename','#boardMenuDeleteBtn':'Delete board','#boardMenuCancelBtn':'Cancel',
+  '#renameBoardOverlay h3':'Rename board','#renameBoardText@ph':'Board name','#cancelRenameBoard':'Cancel','#saveRenameBoard':'Save',
+  '#cancelDelBoard':'Cancel','#confirmDelBoard':'Delete',
+  '#menuEditBtn':'Edit text','#menuDeleteBtn':'Delete','#menuCancelBtn':'Cancel',
+  '#editTaskOverlay h3':'Edit task','#editTaskText@ph':'Task text','#cancelEditTask':'Cancel','#saveEditTask':'Save',
+  '#delOverlay h3':'Delete this task?','#cancelDel':'Cancel','#confirmDel':'Delete',
+  '#rewardOverlay h3':'New reward','#newRewardName@ph':'e.g. Buy a Switch','#newRewardCost@ph':'Star cost, e.g. 100','#cancelReward':'Cancel','#saveReward':'Add',
+  '#syncCodeOverlay h3':'Your sync code','#syncCodeDesc':'Write it down or screenshot it. On another device: open the app → ⚙️ Settings → "I have a sync code" → enter this code to share the same data.','#copySyncCode':'Copy','#doneSyncCode':'Got it',
+  '#enterCodeOverlay h3':'Enter sync code','#syncCodeInput@ph':'e.g. AB3D-EF5G-HJ7K','#enterCodeDesc':'⚠️ After linking, this device adopts the cloud data; its current local data is replaced (export a backup first if unsure).','#cancelEnterCode':'Cancel','#confirmEnterCode':'Link',
+  '#stopSyncOverlay h3':'Stop cloud sync?','#stopSyncDesc':'Data on this device is kept — it just stops syncing. You can relink anytime with the same code.','#cancelStopSync':'Cancel','#confirmStopSync':'Stop sync',
+  '#importOverlay h3':'Import this backup?','#importDesc':'⚠️ Importing replaces your current data (tasks, points, collection, nickname — everything).','#cancelImport':'Cancel','#confirmImport':'Import',
+  '#nameOverlay h3':'What should we call you?','#userNameInput@ph':'Your name or nickname','#nameHint':'Tap the title at the top left to change it anytime','#skipName':'Skip','#saveName':'Save',
+  '#rewardMenuEditBtn':'Edit','#rewardMenuDeleteBtn':'Delete','#rewardMenuCancelBtn':'Cancel',
+  '#editRewardOverlay h3':'Edit reward','#editRewardName@ph':'Reward name','#editRewardCost@ph':'Star cost','#cancelEditReward':'Cancel','#saveEditReward':'Save',
+  '#cancelDelReward':'Cancel','#confirmDelReward':'Delete',
+  '#cancelRedeem':'Cancel','#confirmRedeem':'Redeem',
+  '#achieveOverlay .achieve-title':'Achievement unlocked!','#closeAchieve':'Awesome','#closeGacha':'Take it!',
+  '#settingsBadge@title':'Settings','#ticketBadge@title':'Gacha Collection','#fabRewards@title':'Rewards','#fabNewCell@title':'New task',
+},
+};
+function applyStaticLang(){
+  const map = STATIC_TEXT[state.lang] || STATIC_TEXT.zh;
+  for(const sel in map){
+    const [q, attr] = sel.split('@');
+    const node = document.querySelector(q);
+    if(!node) continue;
+    if(attr === 'ph') node.placeholder = map[sel];
+    else if(attr === 'title') node.title = map[sel];
+    else node.textContent = map[sel];
+  }
+}
+
 const MILESTONES = [10,25,50,100,200,365,500,1000];
 
 // ===== 扭蛋收藏圖鑑「小小雜貨鋪」 =====
 const TICKET_EVERY = 10; // 每累積完成 10 個任務 = 1 張券
 const ITEMS = [
   // 普通（28）
-  {id:'c01',emoji:'🥤',name:'無糖可樂',rarity:'common'},
-  {id:'c02',emoji:'🧋',name:'珍珠奶茶',rarity:'common'},
-  {id:'c03',emoji:'🍬',name:'水果糖',rarity:'common'},
-  {id:'c04',emoji:'🍪',name:'手工餅乾',rarity:'common'},
-  {id:'c05',emoji:'🍙',name:'御飯糰',rarity:'common'},
-  {id:'c06',emoji:'🍮',name:'焦糖布丁',rarity:'common'},
-  {id:'c07',emoji:'🧃',name:'蘋果汁',rarity:'common'},
-  {id:'c08',emoji:'🍞',name:'厚片吐司',rarity:'common'},
-  {id:'c09',emoji:'🥐',name:'奶油可頌',rarity:'common'},
-  {id:'c10',emoji:'🍡',name:'花見糰子',rarity:'common'},
-  {id:'c11',emoji:'🍵',name:'熱綠茶',rarity:'common'},
-  {id:'c12',emoji:'☕',name:'手沖咖啡',rarity:'common'},
-  {id:'c13',emoji:'🧦',name:'花花襪子',rarity:'common'},
-  {id:'c14',emoji:'🧢',name:'棒球帽',rarity:'common'},
-  {id:'c15',emoji:'📎',name:'迴紋針',rarity:'common'},
-  {id:'c16',emoji:'✏️',name:'短鉛筆',rarity:'common'},
-  {id:'c17',emoji:'📒',name:'小筆記本',rarity:'common'},
-  {id:'c18',emoji:'🧸',name:'小熊玩偶',rarity:'common'},
-  {id:'c19',emoji:'🎈',name:'紅氣球',rarity:'common'},
-  {id:'c20',emoji:'🪀',name:'溜溜球',rarity:'common'},
-  {id:'c21',emoji:'🃏',name:'撲克牌',rarity:'common'},
-  {id:'c22',emoji:'🧩',name:'拼圖片',rarity:'common'},
-  {id:'c23',emoji:'🐟',name:'小金魚',rarity:'common'},
-  {id:'c24',emoji:'🐢',name:'小烏龜',rarity:'common'},
-  {id:'c25',emoji:'🌵',name:'小仙人掌',rarity:'common'},
-  {id:'c26',emoji:'🌻',name:'向日葵',rarity:'common'},
-  {id:'c27',emoji:'🍀',name:'幸運草',rarity:'common'},
-  {id:'c28',emoji:'🐚',name:'海邊貝殼',rarity:'common'},
+  {id:'c01',emoji:'🥤',name:'無糖可樂',en:'Sugar-free Cola',rarity:'common'},
+  {id:'c02',emoji:'🧋',name:'珍珠奶茶',en:'Boba Tea',rarity:'common'},
+  {id:'c03',emoji:'🍬',name:'水果糖',en:'Fruit Candy',rarity:'common'},
+  {id:'c04',emoji:'🍪',name:'手工餅乾',en:'Homemade Cookie',rarity:'common'},
+  {id:'c05',emoji:'🍙',name:'御飯糰',en:'Rice Ball',rarity:'common'},
+  {id:'c06',emoji:'🍮',name:'焦糖布丁',en:'Caramel Pudding',rarity:'common'},
+  {id:'c07',emoji:'🧃',name:'蘋果汁',en:'Apple Juice',rarity:'common'},
+  {id:'c08',emoji:'🍞',name:'厚片吐司',en:'Thick Toast',rarity:'common'},
+  {id:'c09',emoji:'🥐',name:'奶油可頌',en:'Butter Croissant',rarity:'common'},
+  {id:'c10',emoji:'🍡',name:'花見糰子',en:'Hanami Dango',rarity:'common'},
+  {id:'c11',emoji:'🍵',name:'熱綠茶',en:'Hot Green Tea',rarity:'common'},
+  {id:'c12',emoji:'☕',name:'手沖咖啡',en:'Pour-over Coffee',rarity:'common'},
+  {id:'c13',emoji:'🧦',name:'花花襪子',en:'Flower Socks',rarity:'common'},
+  {id:'c14',emoji:'🧢',name:'棒球帽',en:'Baseball Cap',rarity:'common'},
+  {id:'c15',emoji:'📎',name:'迴紋針',en:'Paper Clip',rarity:'common'},
+  {id:'c16',emoji:'✏️',name:'短鉛筆',en:'Stubby Pencil',rarity:'common'},
+  {id:'c17',emoji:'📒',name:'小筆記本',en:'Small Notebook',rarity:'common'},
+  {id:'c18',emoji:'🧸',name:'小熊玩偶',en:'Teddy Bear',rarity:'common'},
+  {id:'c19',emoji:'🎈',name:'紅氣球',en:'Red Balloon',rarity:'common'},
+  {id:'c20',emoji:'🪀',name:'溜溜球',en:'Yo-yo',rarity:'common'},
+  {id:'c21',emoji:'🃏',name:'撲克牌',en:'Playing Cards',rarity:'common'},
+  {id:'c22',emoji:'🧩',name:'拼圖片',en:'Puzzle Piece',rarity:'common'},
+  {id:'c23',emoji:'🐟',name:'小金魚',en:'Little Goldfish',rarity:'common'},
+  {id:'c24',emoji:'🐢',name:'小烏龜',en:'Little Turtle',rarity:'common'},
+  {id:'c25',emoji:'🌵',name:'小仙人掌',en:'Mini Cactus',rarity:'common'},
+  {id:'c26',emoji:'🌻',name:'向日葵',en:'Sunflower',rarity:'common'},
+  {id:'c27',emoji:'🍀',name:'幸運草',en:'Lucky Clover',rarity:'common'},
+  {id:'c28',emoji:'🐚',name:'海邊貝殼',en:'Seashell',rarity:'common'},
   // 稀有（14）
-  {id:'r01',emoji:'🎧',name:'降噪耳機',rarity:'rare'},
-  {id:'r02',emoji:'📻',name:'復古收音機',rarity:'rare'},
-  {id:'r03',emoji:'📷',name:'底片相機',rarity:'rare'},
-  {id:'r04',emoji:'⌚',name:'古董手錶',rarity:'rare'},
-  {id:'r05',emoji:'🛼',name:'溜冰鞋',rarity:'rare'},
-  {id:'r06',emoji:'🛹',name:'楓木滑板',rarity:'rare'},
-  {id:'r07',emoji:'🎨',name:'顏料組',rarity:'rare'},
-  {id:'r08',emoji:'🎸',name:'木吉他',rarity:'rare'},
-  {id:'r09',emoji:'🔮',name:'水晶球',rarity:'rare'},
-  {id:'r10',emoji:'🪐',name:'小星球儀',rarity:'rare'},
-  {id:'r11',emoji:'🦜',name:'彩色鸚鵡',rarity:'rare'},
-  {id:'r12',emoji:'🦊',name:'小狐狸',rarity:'rare'},
-  {id:'r13',emoji:'🌈',name:'一道彩虹',rarity:'rare'},
-  {id:'r14',emoji:'🎂',name:'生日蛋糕',rarity:'rare'},
+  {id:'r01',emoji:'🎧',name:'降噪耳機',en:'Noise-canceling Headphones',rarity:'rare'},
+  {id:'r02',emoji:'📻',name:'復古收音機',en:'Retro Radio',rarity:'rare'},
+  {id:'r03',emoji:'📷',name:'底片相機',en:'Film Camera',rarity:'rare'},
+  {id:'r04',emoji:'⌚',name:'古董手錶',en:'Vintage Watch',rarity:'rare'},
+  {id:'r05',emoji:'🛼',name:'溜冰鞋',en:'Roller Skates',rarity:'rare'},
+  {id:'r06',emoji:'🛹',name:'楓木滑板',en:'Maple Skateboard',rarity:'rare'},
+  {id:'r07',emoji:'🎨',name:'顏料組',en:'Paint Set',rarity:'rare'},
+  {id:'r08',emoji:'🎸',name:'木吉他',en:'Acoustic Guitar',rarity:'rare'},
+  {id:'r09',emoji:'🔮',name:'水晶球',en:'Crystal Ball',rarity:'rare'},
+  {id:'r10',emoji:'🪐',name:'小星球儀',en:'Mini Planetarium',rarity:'rare'},
+  {id:'r11',emoji:'🦜',name:'彩色鸚鵡',en:'Colorful Parrot',rarity:'rare'},
+  {id:'r12',emoji:'🦊',name:'小狐狸',en:'Little Fox',rarity:'rare'},
+  {id:'r13',emoji:'🌈',name:'一道彩虹',en:'A Rainbow',rarity:'rare'},
+  {id:'r14',emoji:'🎂',name:'生日蛋糕',en:'Birthday Cake',rarity:'rare'},
   // 傳說（6）
-  {id:'l01',emoji:'👑',name:'黃金皇冠',rarity:'legendary'},
-  {id:'l02',emoji:'💎',name:'大鑽石',rarity:'legendary'},
-  {id:'l03',emoji:'🐉',name:'小小龍',rarity:'legendary'},
-  {id:'l04',emoji:'🦄',name:'獨角獸',rarity:'legendary'},
-  {id:'l05',emoji:'🚀',name:'小火箭',rarity:'legendary'},
-  {id:'l06',emoji:'🏆',name:'冠軍金盃',rarity:'legendary'},
+  {id:'l01',emoji:'👑',name:'黃金皇冠',en:'Golden Crown',rarity:'legendary'},
+  {id:'l02',emoji:'💎',name:'大鑽石',en:'Big Diamond',rarity:'legendary'},
+  {id:'l03',emoji:'🐉',name:'小小龍',en:'Tiny Dragon',rarity:'legendary'},
+  {id:'l04',emoji:'🦄',name:'獨角獸',en:'Unicorn',rarity:'legendary'},
+  {id:'l05',emoji:'🚀',name:'小火箭',en:'Little Rocket',rarity:'legendary'},
+  {id:'l06',emoji:'🏆',name:'冠軍金盃',en:'Champion Trophy',rarity:'legendary'},
 ];
-const RARITY_LABEL = {common:'普通', rare:'稀有', legendary:'傳說'};
+const RARITY_LABEL = {
+  zh:{common:'普通', rare:'稀有', legendary:'傳說'},
+  en:{common:'Common', rare:'Rare', legendary:'Legendary'},
+};
 // 用「本地日期」產生 YYYY-MM-DD（原本的 toISOString 是 UTC，台灣凌晨 0~8 點會被算成前一天）
 function dateKeyOf(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -704,7 +857,7 @@ let state = {
   lastDailyTicketDay: null, // 當日「啟動獎勵券」是否已發過
   userName: '',          // 使用者暱稱
   nameAsked: false,      // 是否已問過名字（避免每次開啟都跳）
-  helpLang: 'zh',        // 使用說明語言 'zh' | 'en'
+  lang: IS_ZH_DEVICE ? 'zh' : 'en', // 介面語言（首次依裝置語言自動偵測）
   view: 'board' // 'board' | 'rewards' | 'gacha'
 };
 
@@ -726,18 +879,18 @@ async function loadState(){
       });
     } else {
       // first run defaults
-      const b1 = { id: uid(), name:'每日待辦', tasks:[
-        {id:uid(), text:'喝3杯水'},
-        {id:uid(), text:'按時吃三餐'},
-        {id:uid(), text:'運動20分鐘'},
-        {id:uid(), text:'12點前睡覺'},
-        {id:uid(), text:'整理桌面雜物'},
+      const b1 = { id: uid(), name:L0('每日待辦','Daily'), tasks:[
+        {id:uid(), text:L0('喝3杯水','Drink 3 glasses of water')},
+        {id:uid(), text:L0('按時吃三餐','Eat 3 meals on time')},
+        {id:uid(), text:L0('運動20分鐘','Exercise 20 minutes')},
+        {id:uid(), text:L0('12點前睡覺','Sleep before midnight')},
+        {id:uid(), text:L0('整理桌面雜物','Tidy the desk')},
       ]};
       state.boards = [b1];
       state.activeBoard = b1.id;
       state.rewards = [
-        {id:uid(), name:'看一場電影', cost:150},
-        {id:uid(), name:'買一杯喜歡的飲料', cost:40},
+        {id:uid(), name:L0('看一場電影','A movie night'), cost:150},
+        {id:uid(), name:L0('買一杯喜歡的飲料','A favorite drink'), cost:40},
       ];
       await saveState();
     }
@@ -790,9 +943,10 @@ function computeStreak(){
 function render(){
   document.getElementById('starCount').textContent = state.points;
   document.getElementById('ticketCount').textContent = state.tickets;
-  const boardTitle = state.userName ? `${state.userName} 的每日任務` : '每日任務';
-  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑', settings:'設定', help:'使用說明' };
-  document.getElementById('pageTitle').textContent = titles[state.view] || '每日任務';
+  applyStaticLang();
+  const boardTitle = state.userName ? t('boardTitleOf', state.userName) : t('appTitle');
+  const titles = { board: boardTitle, rewards:t('rewards'), gacha:t('gacha'), settings:t('settings'), help:t('help') };
+  document.getElementById('pageTitle').textContent = titles[state.view] || t('appTitle');
   document.getElementById('fabRow').style.display = state.view === 'board' ? 'flex' : 'none';
 
   const main = document.getElementById('mainView');
@@ -835,13 +989,13 @@ function render(){
   });
   const addTab = document.createElement('div');
   addTab.className = 'tab add';
-  addTab.textContent = '+ 新增棋盤';
+  addTab.textContent = t('addBoardTab');
   addTab.onclick = () => showOverlay('boardOverlay');
   tabs.appendChild(addTab);
   main.appendChild(tabs);
 
   const board = getBoard();
-  if(!board){ main.appendChild(el('div','empty-hint','還沒有棋盤，點上方新增一個吧')); return; }
+  if(!board){ main.appendChild(el('div','empty-hint',t('noBoard'))); return; }
 
   const grid = document.createElement('div');
   grid.className = 'board';
@@ -866,7 +1020,7 @@ function render(){
 
   const addCell = document.createElement('div');
   addCell.className = 'cell add-cell';
-  addCell.textContent = '+ 新增任務';
+  addCell.textContent = t('addTaskCell');
   addCell.onclick = () => showOverlay('taskOverlay');
   grid.appendChild(addCell);
 
@@ -880,8 +1034,8 @@ function render(){
   sw.innerHTML = `
     <div class="streak-flame${checkedToday ? '' : ' dim'}">🔥</div>
     <div class="streak-info">
-      <div class="streak-num">連續打卡 <b>${streak}</b> 天</div>
-      <div class="streak-sub">${checkedToday ? '今天已打卡' : '今天還沒打卡，完成 1 個任務就算'}　·　最佳紀錄 ${Math.max(state.bestStreak || 0, streak)} 天</div>
+      <div class="streak-num">${t('streakDays', streak)}</div>
+      <div class="streak-sub">${checkedToday ? t('streakDone') : t('streakNot')}　·　${t('streakBest', Math.max(state.bestStreak || 0, streak))}</div>
     </div>
   `;
   main.appendChild(sw);
@@ -896,27 +1050,27 @@ function render(){
   const prog = document.createElement('div');
   prog.className = 'progress-wrap';
   prog.innerHTML = `
-    <div class="progress-top"><span>累積完成 ${state.totalCompletions} 個</span><span>下個成就 ${next}</span></div>
+    <div class="progress-top"><span>${t('progressDone', state.totalCompletions)}</span><span>${t('progressNext', next)}</span></div>
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
   `;
   main.appendChild(prog);
 }
 
 function renderRewards(main){
-  const back = el('div','back-link','← 返回任務');
+  const back = el('div','back-link',t('backTasks'));
   back.onclick = () => { state.view = 'board'; render(); };
   main.appendChild(back);
 
   const header = document.createElement('div');
   header.className = 'rewards-header';
-  header.innerHTML = `<div class="rewards-star">★ ${state.points}</div><div class="rewards-sub">我的積分</div>`;
+  header.innerHTML = `<div class="rewards-star">★ ${state.points}</div><div class="rewards-sub">${t('myPoints')}</div>`;
   main.appendChild(header);
 
   const list = document.createElement('div');
   list.className = 'reward-list';
 
   if(state.rewards.length === 0){
-    list.appendChild(el('div','empty-hint','還沒有獎勵，新增一個吧'));
+    list.appendChild(el('div','empty-hint',t('noRewards')));
   }
 
   state.rewards.forEach(r => {
@@ -928,8 +1082,8 @@ function renderRewards(main){
         <div class="reward-name">${escapeHtml(r.name)}</div>
         <div class="reward-cost">★ ${r.cost} pts</div>
       </div>
-      <div class="reward-menu" title="編輯或刪除">⋯</div>
-      <button class="redeem-btn" ${enough ? '' : 'disabled'}>兌換</button>
+      <div class="reward-menu" title="${t('editOrDelete')}">⋯</div>
+      <button class="redeem-btn" ${enough ? '' : 'disabled'}>${t('redeem')}</button>
     `;
     card.querySelector('.reward-menu').onclick = () => openRewardMenu(r.id);
     card.querySelector('.redeem-btn').onclick = () => redeemReward(r.id);
@@ -941,14 +1095,14 @@ function renderRewards(main){
   addBtn.className = 'tab add';
   addBtn.style.marginTop = '16px';
   addBtn.style.textAlign = 'center';
-  addBtn.textContent = '+ 新增獎勵';
+  addBtn.textContent = t('addReward');
   addBtn.onclick = () => showOverlay('rewardOverlay');
   main.appendChild(addBtn);
 }
 
 // ===== 扭蛋圖鑑頁 =====
 function renderGacha(main){
-  const back = el('div','back-link','← 返回任務');
+  const back = el('div','back-link',t('backTasks'));
   back.onclick = () => { state.view = 'board'; render(); };
   main.appendChild(back);
 
@@ -958,12 +1112,12 @@ function renderGacha(main){
   const meterPct = Math.round(((state.ticketMeter || 0) / TICKET_EVERY) * 100);
   machine.innerHTML = `
     <div class="gacha-ball" id="machineBall"></div>
-    <div class="gacha-tickets">🎫 扭蛋券 × ${state.tickets}</div>
+    <div class="gacha-tickets">${t('ticketsX', state.tickets)}</div>
     <button class="btn primary" id="drawBtn" style="width:70%;" ${state.tickets > 0 ? '' : 'disabled'}>
-      ${state.tickets > 0 ? '轉一顆！' : '先去完成任務拿券'}
+      ${state.tickets > 0 ? t('spin') : t('noTickets')}
     </button>
     <div class="gacha-meter">
-      <span>再完成 ${TICKET_EVERY - (state.ticketMeter || 0)} 個任務，就有下一張券（每天第一個任務也送 1 張）</span>
+      <span>${t('meterHint', TICKET_EVERY - (state.ticketMeter || 0))}</span>
       <div class="progress-bar"><div class="progress-fill" style="width:${meterPct}%"></div></div>
     </div>
   `;
@@ -976,14 +1130,14 @@ function renderGacha(main){
   const owned = state.collection.length;
   const total = ITEMS.length;
   const head = el('div','col-sec');
-  head.innerHTML = `<span>收藏圖鑑</span><span>已收集 ${owned} / ${total}</span>`;
+  head.innerHTML = `<span>${t('collBook')}</span><span>${t('collected', owned, total)}</span>`;
   main.appendChild(head);
 
   ['legendary','rare','common'].forEach(rarity => {
     const group = ITEMS.filter(i => i.rarity === rarity);
     const got = group.filter(i => state.collection.includes(i.id)).length;
     const sec = el('div','col-sec');
-    sec.innerHTML = `<span>${RARITY_LABEL[rarity]}</span><span>${got} / ${group.length}</span>`;
+    sec.innerHTML = `<span>${RARITY_LABEL[state.lang][rarity]}</span><span>${got} / ${group.length}</span>`;
     main.appendChild(sec);
 
     const grid = document.createElement('div');
@@ -994,7 +1148,7 @@ function renderGacha(main){
       d.className = 'col-item ' + rarity + (has ? '' : ' locked');
       d.innerHTML = `
         <div class="ci-emoji">${item.emoji}</div>
-        <div class="ci-name">${has ? item.name : '？？？'}</div>
+        <div class="ci-name">${has ? itemName(item) : t('lockedName')}</div>
       `;
       grid.appendChild(d);
     });
@@ -1030,7 +1184,7 @@ async function drawGacha(){
   if(!item){
     // 全圖鑑集滿：券轉成星星積分
     state.points += 5;
-    showToast('🎉 圖鑑已全數收集！這張券換成 ★5');
+    showToast(t('collFull'));
     render();
     await saveState();
     return;
@@ -1057,9 +1211,9 @@ function showGachaReveal(item){
   // 第二階段：開出收藏品
   setTimeout(() => {
     stage.innerHTML = `<div class="gacha-item-big">${item.emoji}</div>`;
-    nameEl.textContent = `獲得「${item.name}」！`;
+    nameEl.textContent = t('gotItem', itemName(item));
     nameEl.style.display = '';
-    rarityEl.innerHTML = `<span class="rarity-tag rarity-${item.rarity}">${RARITY_LABEL[item.rarity]}</span>`;
+    rarityEl.innerHTML = `<span class="rarity-tag rarity-${item.rarity}">${RARITY_LABEL[state.lang][item.rarity]}</span>`;
     rarityEl.style.display = '';
     closeBtn.style.display = '';
   }, 900);
@@ -1155,7 +1309,7 @@ function startListening(){
     if(d.updatedBy === syncInfo.deviceId) return;        // 自己剛剛寫的
     if((d.updatedAt || 0) <= lastAppliedRemote) return;  // 已經套用過
     applyRemote(d);
-    showToast('☁️ 已同步雲端最新資料');
+    showToast(t('toastSyncPull'));
   }, (err) => console.warn('同步監聽中斷', err));
 }
 
@@ -1177,8 +1331,8 @@ async function connectSync(){
 }
 
 async function enableSyncNew(){
-  showToast('☁️ 連線中…');
-  if(!(await initFirebase())){ showToast('無法連線，請確認網路與 Firebase 設定'); return; }
+  showToast(t('toastConnecting'));
+  if(!(await initFirebase())){ showToast(t('toastNoConn')); return; }
   syncInfo.code = genSyncCode();
   saveSyncInfo();
   await pushNow();
@@ -1191,20 +1345,20 @@ async function enableSyncNew(){
 async function enableSyncWith(codeRaw){
   const code = codeRaw.trim().toUpperCase();
   if(!code) return false;
-  showToast('☁️ 連線中…');
-  if(!(await initFirebase())){ showToast('無法連線，請確認網路與 Firebase 設定'); return false; }
+  showToast(t('toastConnecting'));
+  if(!(await initFirebase())){ showToast(t('toastNoConn')); return false; }
   try{
     const snap = await fs.getDoc(fs.doc(db, 'sync', code));
-    if(!snap.exists()){ showToast('找不到這個同步碼，請確認輸入是否正確'); return false; }
+    if(!snap.exists()){ showToast(t('toastCodeNotFound')); return false; }
     syncInfo.code = code;
     saveSyncInfo();
     applyRemote(snap.data());
     startListening();
-    showToast('☁️ 連結成功，資料已同步');
+    showToast(t('toastLinked'));
     return true;
   }catch(e){
     console.warn(e);
-    showToast('連結失敗，請稍後再試');
+    showToast(t('toastLinkFail'));
     return false;
   }
 }
@@ -1213,7 +1367,7 @@ function disableSync(){
   if(unsubSnapshot){ unsubSnapshot(); unsubSnapshot = null; }
   syncInfo.code = null;
   saveSyncInfo();
-  showToast('已停止雲端同步（本機資料保留）');
+  showToast(t('toastSyncStopped'));
   render();
 }
 
@@ -1234,25 +1388,39 @@ function exportBackup(){
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-  showToast('💾 已匯出備份檔');
+  showToast(t('toastExported'));
 }
 
 // ============================================================
 // ⚙️ 設定頁
 // ============================================================
 function renderSettings(main){
-  const back = el('div','back-link','← 返回任務');
+  const back = el('div','back-link',t('backTasks'));
   back.onclick = () => { state.view = 'board'; render(); };
   main.appendChild(back);
+
+  // --- 語言 ---
+  const langCard = document.createElement('div');
+  langCard.className = 'settings-card';
+  langCard.innerHTML = `
+    <div class="settings-title">${t('setLangTitle')}</div>
+    <div class="lang-toggle" style="margin-bottom:0;">
+      <div class="lang-btn${state.lang === 'zh' ? ' on' : ''}" id="setLangZh">中文</div>
+      <div class="lang-btn${state.lang === 'en' ? ' on' : ''}" id="setLangEn">English</div>
+    </div>
+  `;
+  main.appendChild(langCard);
+  langCard.querySelector('#setLangZh').onclick = async () => { state.lang = 'zh'; render(); await saveState(); };
+  langCard.querySelector('#setLangEn').onclick = async () => { state.lang = 'en'; render(); await saveState(); };
 
   // --- 使用說明入口 ---
   const helpCard = document.createElement('div');
   helpCard.className = 'settings-card';
   helpCard.innerHTML = `
-    <div class="settings-title">📖 使用說明</div>
-    <div class="settings-desc">第一次使用？所有功能的操作方式、獎勵定價心法、同步教學都在這裡。</div>
+    <div class="settings-title">${t('setHelpTitle')}</div>
+    <div class="settings-desc">${t('setHelpDesc')}</div>
     <div class="sheet-btns">
-      <button class="btn primary" id="btnHelp">打開使用說明</button>
+      <button class="btn primary" id="btnHelp">${t('setHelpBtn')}</button>
     </div>
   `;
   main.appendChild(helpCard);
@@ -1263,29 +1431,29 @@ function renderSettings(main){
   syncCard.className = 'settings-card';
   if(!firebaseReady()){
     syncCard.innerHTML = `
-      <div class="settings-title">☁️ 雲端同步</div>
-      <div class="settings-desc">尚未設定 Firebase。設定完成後，iPhone 和 iPad 可以共用同一份資料、即時同步。設定方法在檔案開頭的說明註解裡（免費、約 5 分鐘）。在那之前，可以先用下面的「匯出備份」在裝置間搬資料。</div>
+      <div class="settings-title">${t('setSyncTitle')}</div>
+      <div class="settings-desc">${t('setSyncNoFb')}</div>
     `;
   } else if(!syncInfo.code){
     syncCard.innerHTML = `
-      <div class="settings-title">☁️ 雲端同步</div>
-      <div class="settings-desc">啟用後，這份資料會存到雲端，其他裝置輸入同一組「同步碼」就能共用並即時同步。</div>
+      <div class="settings-title">${t('setSyncTitle')}</div>
+      <div class="settings-desc">${t('setSyncOffDesc')}</div>
       <div class="sheet-btns">
-        <button class="btn primary" id="btnNewSync">建立同步碼（第一台裝置）</button>
+        <button class="btn primary" id="btnNewSync">${t('btnNewSync')}</button>
       </div>
       <div class="sheet-btns" style="margin-top:10px;">
-        <button class="btn ghost" id="btnHaveCode">我有同步碼（第二台裝置）</button>
+        <button class="btn ghost" id="btnHaveCode">${t('btnHaveCode')}</button>
       </div>
     `;
   } else {
-    const t = syncInfo.lastSync ? new Date(syncInfo.lastSync).toLocaleString('zh-TW') : '—';
+    const lastT = syncInfo.lastSync ? new Date(syncInfo.lastSync).toLocaleString(state.lang === 'en' ? 'en-US' : 'zh-TW') : '—';
     syncCard.innerHTML = `
-      <div class="settings-title">☁️ 雲端同步 <span class="sync-on">已啟用</span></div>
+      <div class="settings-title">${t('setSyncTitle')} <span class="sync-on">${t('setSyncOn')}</span></div>
       <div class="sync-code-box">${escapeHtml(syncInfo.code)}</div>
-      <div class="sync-status">上次同步：${t}。在另一台裝置的設定頁選「我有同步碼」並輸入這組碼即可共用資料。</div>
+      <div class="sync-status">${t('syncStatus', lastT)}</div>
       <div class="sheet-btns">
-        <button class="btn ghost" id="btnCopyCode">複製同步碼</button>
-        <button class="btn danger" id="btnStopSync">停止同步</button>
+        <button class="btn ghost" id="btnCopyCode">${t('btnCopyCode')}</button>
+        <button class="btn danger" id="btnStopSync">${t('btnStopSync')}</button>
       </div>
     `;
   }
@@ -1296,8 +1464,8 @@ function renderSettings(main){
   if(btnHaveCode) btnHaveCode.onclick = () => { document.getElementById('syncCodeInput').value = ''; showOverlay('enterCodeOverlay'); };
   const btnCopyCode = syncCard.querySelector('#btnCopyCode');
   if(btnCopyCode) btnCopyCode.onclick = async () => {
-    try{ await navigator.clipboard.writeText(syncInfo.code); showToast('已複製同步碼'); }
-    catch(e){ showToast('無法自動複製，請長按同步碼手動複製'); }
+    try{ await navigator.clipboard.writeText(syncInfo.code); showToast(t('toastCopied')); }
+    catch(e){ showToast(t('toastCopyFail')); }
   };
   const btnStopSync = syncCard.querySelector('#btnStopSync');
   if(btnStopSync) btnStopSync.onclick = () => showOverlay('stopSyncOverlay');
@@ -1306,11 +1474,11 @@ function renderSettings(main){
   const bkCard = document.createElement('div');
   bkCard.className = 'settings-card';
   bkCard.innerHTML = `
-    <div class="settings-title">💾 資料備份</div>
-    <div class="settings-desc">匯出會把所有資料（任務、積分、圖鑑、連續紀錄、暱稱）存成一個檔案；在任何裝置匯入即可還原。建議定期匯出保存。</div>
+    <div class="settings-title">${t('setBkTitle')}</div>
+    <div class="settings-desc">${t('setBkDesc')}</div>
     <div class="sheet-btns">
-      <button class="btn primary" id="btnExport">匯出備份</button>
-      <button class="btn ghost" id="btnImport">匯入備份</button>
+      <button class="btn primary" id="btnExport">${t('btnExport')}</button>
+      <button class="btn ghost" id="btnImport">${t('btnImport')}</button>
     </div>
   `;
   main.appendChild(bkCard);
@@ -1321,10 +1489,10 @@ function renderSettings(main){
   const nmCard = document.createElement('div');
   nmCard.className = 'settings-card';
   nmCard.innerHTML = `
-    <div class="settings-title">✏️ 暱稱</div>
-    <div class="settings-desc">${state.userName ? '目前暱稱：' + escapeHtml(state.userName) : '還沒設定暱稱'}</div>
+    <div class="settings-title">${t('setNameTitle')}</div>
+    <div class="settings-desc">${state.userName ? t('nameCurrent', escapeHtml(state.userName)) : t('nameNone')}</div>
     <div class="sheet-btns">
-      <button class="btn ghost" id="btnEditName">修改暱稱</button>
+      <button class="btn ghost" id="btnEditName">${t('btnEditName')}</button>
     </div>
   `;
   main.appendChild(nmCard);
@@ -1355,9 +1523,9 @@ const HELP_SECTIONS_EN = [
 ];
 
 function renderHelp(main){
-  const isEn = state.helpLang === 'en';
+  const isEn = state.lang === 'en';
 
-  const back = el('div','back-link', isEn ? '← Back to Settings' : '← 返回設定');
+  const back = el('div','back-link', t('backSettings'));
   back.onclick = () => { state.view = 'settings'; render(); };
   main.appendChild(back);
 
@@ -1368,8 +1536,8 @@ function renderHelp(main){
     <div class="lang-btn${isEn ? '' : ' on'}" id="langZh">中文</div>
     <div class="lang-btn${isEn ? ' on' : ''}" id="langEn">English</div>
   `;
-  toggle.querySelector('#langZh').onclick = async () => { state.helpLang = 'zh'; render(); await saveState(); };
-  toggle.querySelector('#langEn').onclick = async () => { state.helpLang = 'en'; render(); await saveState(); };
+  toggle.querySelector('#langZh').onclick = async () => { state.lang = 'zh'; render(); await saveState(); };
+  toggle.querySelector('#langEn').onclick = async () => { state.lang = 'en'; render(); await saveState(); };
   main.appendChild(toggle);
 
   const sections = isEn ? HELP_SECTIONS_EN : HELP_SECTIONS;
@@ -1421,14 +1589,14 @@ async function toggleTask(boardId, taskId, cellEl){
     if(firstOfToday && state.lastDailyTicketDay !== day){
       state.tickets += 1;
       state.lastDailyTicketDay = day;
-      showToast('🎫 今日啟動成功！獲得 1 張扭蛋券');
+      showToast(t('toastDailyTicket'));
     }
     // 集氣條：每累積完成 TICKET_EVERY 個任務 → +1 扭蛋券
     state.ticketMeter = (state.ticketMeter || 0) + 1;
     if(state.ticketMeter >= TICKET_EVERY){
       state.ticketMeter -= TICKET_EVERY;
       state.tickets += 1;
-      showToast(`🎫 累積完成 ${TICKET_EVERY} 個任務！獲得 1 張扭蛋券`);
+      showToast(t('toastMeterTicket', TICKET_EVERY));
     }
     const s = computeStreak();
     if(s > (state.bestStreak || 0)) state.bestStreak = s;
@@ -1471,7 +1639,7 @@ function checkMilestone(){
   if(hit && !state.unlockedMilestones.includes(hit)){
     state.unlockedMilestones.push(hit);
     document.getElementById('medalNum').textContent = hit;
-    document.getElementById('achieveText').textContent = `已累積完成 ${hit} 個任務`;
+    document.getElementById('achieveText').textContent = t('achieveN', hit);
     document.getElementById('achieveOverlay').classList.add('show');
   }
 }
@@ -1500,7 +1668,7 @@ document.getElementById('rewardMenuEditBtn').onclick = () => {
 document.getElementById('rewardMenuDeleteBtn').onclick = () => {
   hideOverlay('rewardMenuOverlay');
   if(!pendingRewardEdit) return;
-  document.getElementById('delRewardTitle').textContent = `刪除「${pendingRewardEdit.name}」這個獎勵？`;
+  document.getElementById('delRewardTitle').textContent = t('delRewardQ', pendingRewardEdit.name);
   showOverlay('delRewardOverlay');
 };
 
@@ -1532,7 +1700,7 @@ function redeemReward(rewardId){
   const r = state.rewards.find(x => x.id === rewardId);
   if(!r || state.points < r.cost) return;
   pendingRedeem = r;
-  document.getElementById('redeemTitle').textContent = `用 ★${r.cost} 兌換「${r.name}」？`;
+  document.getElementById('redeemTitle').textContent = t('redeemQ', r.cost, r.name);
   showOverlay('redeemOverlay');
 }
 
@@ -1540,7 +1708,7 @@ document.getElementById('cancelRedeem').onclick = () => { hideOverlay('redeemOve
 document.getElementById('confirmRedeem').onclick = async () => {
   if(pendingRedeem && state.points >= pendingRedeem.cost){
     state.points -= pendingRedeem.cost;
-    showToast(`🎁 兌換成功！好好享受「${pendingRedeem.name}」`);
+    showToast(t('toastRedeemed', pendingRedeem.name));
   }
   pendingRedeem = null;
   hideOverlay('redeemOverlay');
@@ -1568,11 +1736,11 @@ document.getElementById('boardMenuEditBtn').onclick = () => {
 document.getElementById('boardMenuDeleteBtn').onclick = () => {
   hideOverlay('boardMenuOverlay');
   if(state.boards.length <= 1){
-    document.getElementById('delBoardTitle').textContent = '至少要保留一個棋盤，無法刪除';
+    document.getElementById('delBoardTitle').textContent = t('delBoardMin');
     showOverlay('delBoardOverlay');
     document.getElementById('confirmDelBoard').style.display = 'none';
   } else {
-    document.getElementById('delBoardTitle').textContent = `刪除「${pendingBoardAction ? pendingBoardAction.name : ''}」這個棋盤？`;
+    document.getElementById('delBoardTitle').textContent = t('delBoardQ', pendingBoardAction ? pendingBoardAction.name : '');
     document.getElementById('confirmDelBoard').style.display = '';
     showOverlay('delBoardOverlay');
   }
@@ -1620,8 +1788,8 @@ document.getElementById('settingsBadge').onclick = () => { state.view = 'setting
 
 // 同步相關彈窗
 document.getElementById('copySyncCode').onclick = async () => {
-  try{ await navigator.clipboard.writeText(syncInfo.code || ''); showToast('已複製同步碼'); }
-  catch(e){ showToast('無法自動複製，請長按同步碼手動複製'); }
+  try{ await navigator.clipboard.writeText(syncInfo.code || ''); showToast(t('toastCopied')); }
+  catch(e){ showToast(t('toastCopyFail')); }
 };
 document.getElementById('doneSyncCode').onclick = () => hideOverlay('syncCodeOverlay');
 document.getElementById('cancelEnterCode').onclick = () => hideOverlay('enterCodeOverlay');
@@ -1647,7 +1815,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
       pendingImport = data;
       showOverlay('importOverlay');
     }catch(err){
-      showToast('這不是有效的備份檔');
+      showToast(t('toastBadBackup'));
     }
   };
   reader.readAsText(f);
@@ -1659,7 +1827,7 @@ document.getElementById('confirmImport').onclick = async () => {
     state = Object.assign({}, state, pendingImport);
     state.view = keepView;
     pendingImport = null;
-    showToast('✅ 匯入完成');
+    showToast(t('toastImported'));
   }
   hideOverlay('importOverlay');
   render();
@@ -1772,7 +1940,7 @@ document.getElementById('saveName').onclick = async () => {
   state.userName = name;
   state.nameAsked = true;
   hideOverlay('nameOverlay');
-  if(name) showToast(`嗨，${name}！這是你的專屬系統了 ✨`);
+  if(name) showToast(t('toastHiName', name));
   render();
   await saveState();
 };
