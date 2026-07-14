@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>每日任務</title>
+
+<!-- PWA: 讓「加入主畫面」後有獨立圖示、全螢幕、無瀏覽器網址列 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F3EEE4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="每日任務">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream: #F3EEE4;
+    --card: #EBE4D6;
+    --card-line: #DCD2BE;
+    --tan: #C6A26E;
+    --tan-deep: #A9814F;
+    --done: #B99B6F;
+    --ink: #3B2E20;
+    --muted: #8C7B62;
+    --gold: #D6A23C;
+    --danger: #B5573F;
+    --white: #FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    font-family:'Noto Sans TC','Noto Serif TC',sans-serif;
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+    min-height:100vh;
+  }
+  .app{max-width:520px;margin:0 auto;padding:20px 18px 100px;position:relative;}
+
+  /* header */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .brand{font-family:'Noto Serif TC',serif;font-weight:900;font-size:22px;letter-spacing:1px;}
+  .star-badge{
+    display:flex;align-items:center;gap:6px;
+    background:var(--white);
+    border:1px solid var(--card-line);
+    padding:7px 14px;border-radius:999px;
+    font-weight:700;font-size:15px;
+    cursor:pointer;
+  }
+  .star-badge svg{width:16px;height:16px;}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;
+    padding:10px 16px;
+    border-radius:999px;
+    border:1.5px solid transparent;
+    background:var(--card);
+    color:var(--muted);
+    font-size:14px;font-weight:700;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  .tab.active{background:var(--white);border-color:var(--tan);color:var(--ink);}
+  .tab.add{background:transparent;border:1.5px dashed var(--card-line);color:var(--muted);}
+  .tab-wrap{display:flex;align-items:center;gap:2px;flex:0 0 auto;background:var(--card);border-radius:999px;border:1.5px solid transparent;}
+  .tab-wrap.active{background:var(--white);border-color:var(--tan);}
+  .tab-wrap .tab{background:transparent;border:none;padding-right:6px;}
+  .tab-gear{
+    padding:8px 12px 8px 2px;font-size:13px;color:var(--muted);cursor:pointer;
+  }
+
+  /* grid */
+  .board{
+    background:var(--card);
+    border-radius:22px;
+    padding:16px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .cell{
+    background:var(--white);
+    border-radius:16px;
+    padding:16px 12px;
+    min-height:92px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    font-size:15px;font-weight:500;line-height:1.35;
+    cursor:pointer;
+    position:relative;
+    border:1px solid var(--card-line);
+    transition:transform .12s ease, background .2s ease, border-color .2s ease;
+    user-select:none;
+  }
+  .cell:active{transform:scale(0.96);}
+  .cell.done{
+    background:var(--done);
+    border-color:var(--done);
+    color:var(--white);
+  }
+  .cell .check{
+    align-self:flex-end;
+    width:22px;height:22px;border-radius:50%;
+    background:rgba(255,255,255,0.5);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:var(--white);
+  }
+  .cell.done .check{background:rgba(255,255,255,0.85);color:var(--tan-deep);}
+  .cell:not(.done) .check{opacity:0;}
+  .cell .menu-btn{
+    position:absolute;top:4px;right:4px;
+    width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:var(--muted);
+    background:rgba(0,0,0,0.05);
+    line-height:1;
+  }
+  .cell.done .menu-btn{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.18);}
+  .cell.add-cell{
+    align-items:center;justify-content:center;
+    color:var(--muted);border:1.5px dashed var(--card-line);
+    background:transparent;font-size:14px;font-weight:700;
+  }
+
+  /* streak card */
+  .streak-wrap{
+    margin-top:16px;padding:14px 16px;
+    background:var(--card);border-radius:18px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .streak-flame{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--white);border:1px solid var(--card-line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex:0 0 auto;
+  }
+  .streak-flame.dim{filter:grayscale(1);opacity:.55;}
+  .streak-num{font-size:15px;font-weight:700;}
+  .streak-num b{font-family:'Noto Serif TC',serif;font-size:18px;color:var(--tan-deep);}
+  .streak-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* progress strip */
+  .progress-wrap{margin-top:12px;padding:14px 16px;background:var(--card);border-radius:18px;}
+  .progress-top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:8px;font-weight:700;}
+  .progress-bar{height:8px;background:var(--card-line);border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--tan),var(--gold));border-radius:999px;transition:width .4s ease;}
+
+  /* floating buttons */
+  .fab-row{position:fixed;bottom:22px;left:0;right:0;max-width:520px;margin:0 auto;padding:0 18px;display:flex;justify-content:space-between;pointer-events:none;}
+  .fab{
+    pointer-events:auto;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--white);border:1px solid var(--card-line);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 16px rgba(59,46,32,0.12);
+    cursor:pointer;font-size:20px;color:var(--tan-deep);
+  }
+
+  /* modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(59,46,32,0.35);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    background:var(--white);width:100%;max-width:520px;border-radius:24px 24px 0 0;
+    padding:22px 20px 28px;animation:slideup .25s ease;
+  }
+  @keyframes slideup{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .sheet h3{margin:0 0 14px;font-family:'Noto Serif TC',serif;font-size:19px;}
+  .sheet input, .sheet select{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--card-line);
+    font-size:15px;margin-bottom:12px;background:var(--cream);font-family:inherit;
+  }
+  .sheet-btns{display:flex;gap:10px;margin-top:6px;}
+  .copy-check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin:-2px 0 14px;cursor:pointer;}
+  .copy-check input{width:auto;margin:0;accent-color:var(--tan-deep);}
+  .btn{flex:1;padding:13px;border-radius:12px;border:none;font-weight:700;font-size:15px;cursor:pointer;}
+  .btn.primary{background:var(--tan-deep);color:var(--white);}
+  .btn.ghost{background:var(--cream);color:var(--muted);}
+  .btn.danger{background:var(--danger);color:var(--white);}
+
+  /* rewards page */
+  .rewards-header{text-align:center;margin:8px 0 20px;}
+  .rewards-star{font-size:44px;font-weight:900;font-family:'Noto Serif TC',serif;color:var(--gold);}
+  .rewards-sub{color:var(--muted);font-size:13px;margin-top:2px;}
+  .reward-list{display:flex;flex-direction:column;gap:12px;}
+  .reward-card{
+    background:var(--white);border:1px solid var(--card-line);border-radius:18px;
+    padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .reward-info{flex:1;}
+  .reward-name{font-weight:700;font-size:15px;}
+  .reward-cost{color:var(--gold);font-weight:700;font-size:13px;margin-top:4px;}
+  .redeem-btn{
+    padding:9px 16px;border-radius:999px;border:none;font-weight:700;font-size:13px;
+    background:var(--tan);color:var(--white);cursor:pointer;white-space:nowrap;
+  }
+  .redeem-btn:disabled{background:var(--card-line);color:var(--muted);cursor:not-allowed;}
+  .reward-menu{
+    width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;color:var(--muted);background:rgba(0,0,0,0.05);
+    cursor:pointer;
+  }
+  .back-link{color:var(--muted);font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px;font-weight:700;}
+
+  /* achievement toast */
+  .achieve-overlay{
+    position:fixed;inset:0;background:rgba(59,46,32,0.55);z-index:80;
+    display:none;align-items:center;justify-content:center;
+  }
+  .achieve-overlay.show{display:flex;}
+  .achieve-card{
+    background:var(--white);border-radius:24px;padding:34px 28px;text-align:center;
+    max-width:300px;animation:pop .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{from{transform:scale(0.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .medal{
+    width:84px;height:84px;border-radius:50%;
+    background:conic-gradient(from 180deg, var(--gold), var(--tan), var(--gold));
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    font-size:32px;color:var(--white);font-weight:900;
+    box-shadow:0 8px 20px rgba(214,162,60,0.4);
+  }
+  .achieve-title{font-family:'Noto Serif TC',serif;font-weight:900;font-size:19px;margin-bottom:6px;}
+  .achieve-sub{color:var(--muted);font-size:13.5px;margin-bottom:20px;}
+
+  .empty-hint{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
+
+  /* ===== 扭蛋 / 收藏圖鑑 ===== */
+  .gacha-card{background:var(--card);border-radius:22px;padding:24px 16px 20px;text-align:center;}
+  .gacha-ball{
+    width:84px;height:84px;border-radius:50%;margin:0 auto 14px;position:relative;
+    background:linear-gradient(to bottom, var(--tan) 50%, var(--white) 50%);
+    border:2px solid var(--card-line);
+    box-shadow:0 8px 20px rgba(59,46,32,0.18);
+  }
+  .gacha-ball::after{
+    content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:20px;height:20px;border-radius:50%;
+    background:var(--cream);border:2px solid var(--card-line);
+  }
+  .gacha-ball.shake{animation:gshake .8s ease-in-out;}
+  @keyframes gshake{
+    0%,100%{transform:rotate(0);}
+    20%{transform:rotate(-14deg);}
+    40%{transform:rotate(12deg);}
+    60%{transform:rotate(-9deg);}
+    80%{transform:rotate(6deg);}
+  }
+  .gacha-item-big{font-size:62px;line-height:1.15;margin:6px auto 12px;animation:pop .35s cubic-bezier(.2,1.4,.4,1);}
+  .gacha-tickets{font-size:14px;font-weight:700;margin-bottom:12px;}
+  .gacha-meter{margin-top:14px;font-size:12px;color:var(--muted);font-weight:700;}
+  .gacha-meter .progress-bar{margin-top:6px;}
+  .rarity-tag{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:14px;}
+  .rarity-common{background:var(--cream);color:var(--muted);}
+  .rarity-rare{background:rgba(198,162,110,0.28);color:var(--tan-deep);}
+  .rarity-legendary{background:linear-gradient(90deg,var(--gold),var(--tan));color:var(--white);}
+  .col-sec{margin:20px 2px 8px;font-size:13px;font-weight:900;color:var(--muted);letter-spacing:1px;display:flex;justify-content:space-between;}
+  .col-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .col-item{
+    background:var(--white);border:1px solid var(--card-line);border-radius:14px;
+    padding:10px 4px 8px;text-align:center;
+  }
+  .col-item.rare{border-color:var(--tan);}
+  .col-item.legendary{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;}
+  .col-item .ci-emoji{font-size:26px;line-height:1.2;}
+  .col-item .ci-name{font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:700;}
+  .col-item.locked{background:transparent;border-style:dashed;box-shadow:none;}
+  .col-item.locked .ci-emoji{filter:grayscale(1) blur(4px);opacity:0.4;}
+
+  /* 打卡彩帶 */
+  .confetti{
+    position:fixed;width:7px;height:7px;border-radius:2px;
+    pointer-events:none;z-index:90;
+    animation:conf .6s ease-out forwards;
+  }
+  @keyframes conf{
+    from{transform:translate(0,0) rotate(0deg);opacity:1;}
+    to{transform:translate(var(--dx),var(--dy)) rotate(220deg);opacity:0;}
+  }
+
+  /* toast */
+  .toast{
+    position:fixed;top:calc(env(safe-area-inset-top, 0px) + 14px);
+    left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--white);
+    padding:10px 18px;border-radius:999px;
+    font-size:14px;font-weight:700;z-index:95;
+    opacity:0;transition:opacity .25s ease;pointer-events:none;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="brand" id="pageTitle">每日任務</div>
+    <div style="display:flex;gap:8px;">
+      <div class="star-badge" id="ticketBadge" title="扭蛋圖鑑">
+        <span style="font-size:15px;">🎫</span>
+        <span id="ticketCount">0</span>
+      </div>
+      <div class="star-badge" id="starBadge">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7L12 2z" fill="#D6A23C"/></svg>
+        <span id="starCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainView"></div>
+</div>
+
+<div class="fab-row" id="fabRow">
+  <div class="fab" id="fabRewards" title="獎勵">🎁</div>
+  <div class="fab" id="fabNewCell" title="新增任務">✎</div>
+</div>
+
+<!-- add board sheet -->
+<div class="overlay" id="boardOverlay">
+  <div class="sheet">
+    <h3>新增棋盤</h3>
+    <input type="text" id="newBoardName" placeholder="例如：工作、健康">
+    <label class="copy-check">
+      <input type="checkbox" id="copyCurrentBoard">
+      <span>複製目前棋盤的任務內容</span>
+    </label>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelBoard">取消</button>
+      <button class="btn primary" id="saveBoard">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- add task sheet -->
+<div class="overlay" id="taskOverlay">
+  <div class="sheet">
+    <h3>新增任務</h3>
+    <input type="text" id="newTaskText" placeholder="越小越好，例如：喝一口水、打開書本">
+    <div style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">💡 小到不可能失敗的任務，最容易讓自己啟動</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelTask">取消</button>
+      <button class="btn primary" id="saveTask">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- board menu: rename or delete -->
+<div class="overlay" id="boardMenuOverlay">
+  <div class="sheet">
+    <h3 id="boardMenuTitle">棋盤選項</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="boardMenuEditBtn">修改名稱</button>
+      <button class="btn danger" id="boardMenuDeleteBtn">刪除棋盤</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn ghost" id="boardMenuCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- rename board -->
+<div class="overlay" id="renameBoardOverlay">
+  <div class="sheet">
+    <h3>修改棋盤名稱</h3>
+    <input type="text" id="renameBoardText" placeholder="棋盤名稱">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelRenameBoard">取消</button>
+      <button class="btn primary" id="saveRenameBoard">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- delete board confirm -->
+<div class="overlay" id="delBoardOverlay">
+  <div class="sheet">
+    <h3 id="delBoardTitle">刪除這個棋盤？</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelDelBoard">取消</button>
+      <button class="btn danger" id="confirmDelBoard">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- task menu: edit or delete -->
+<div class="overlay" id="taskMenuOverlay">
+  <div class="sheet">
+    <h3 id="taskMenuTitle">任務選項</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="menuEditBtn">編輯文字</button>
+      <button class="btn danger" id="menuDeleteBtn">刪除</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn ghost" id="menuCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- edit task text -->
+<div class="overlay" id="editTaskOverlay">
+  <div class="sheet">
+    <h3>編輯任務文字</h3>
+    <input type="text" id="editTaskText" placeholder="任務內容">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelEditTask">取消</button>
+      <button class="btn primary" id="saveEditTask">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- delete task confirm -->
+<div class="overlay" id="delOverlay">
+  <div class="sheet">
+    <h3>刪除這個任務？</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelDel">取消</button>
+      <button class="btn danger" id="confirmDel">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- add reward sheet -->
+<div class="overlay" id="rewardOverlay">
+  <div class="sheet">
+    <h3>新增獎勵</h3>
+    <input type="text" id="newRewardName" placeholder="例如：買 Switch">
+    <input type="number" id="newRewardCost" placeholder="所需積分，例如 100">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelReward">取消</button>
+      <button class="btn primary" id="saveReward">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- set user name -->
+<div class="overlay" id="nameOverlay">
+  <div class="sheet">
+    <h3>怎麼稱呼你？</h3>
+    <input type="text" id="userNameInput" placeholder="你的名字或暱稱" maxlength="10">
+    <div style="font-size:12px;color:var(--muted);margin:-6px 0 12px;">之後點左上角的標題，隨時可以改</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="skipName">先跳過</button>
+      <button class="btn primary" id="saveName">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- reward menu: edit or delete -->
+<div class="overlay" id="rewardMenuOverlay">
+  <div class="sheet">
+    <h3 id="rewardMenuTitle">獎勵選項</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="rewardMenuEditBtn">編輯</button>
+      <button class="btn danger" id="rewardMenuDeleteBtn">刪除</button>
+    </div>
+    <div class="sheet-btns" style="margin-top:10px;">
+      <button class="btn ghost" id="rewardMenuCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- edit reward -->
+<div class="overlay" id="editRewardOverlay">
+  <div class="sheet">
+    <h3>編輯獎勵</h3>
+    <input type="text" id="editRewardName" placeholder="獎勵名稱">
+    <input type="number" id="editRewardCost" placeholder="所需積分">
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelEditReward">取消</button>
+      <button class="btn primary" id="saveEditReward">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- delete reward confirm -->
+<div class="overlay" id="delRewardOverlay">
+  <div class="sheet">
+    <h3 id="delRewardTitle">刪除這個獎勵？</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelDelReward">取消</button>
+      <button class="btn danger" id="confirmDelReward">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- redeem confirm -->
+<div class="overlay" id="redeemOverlay">
+  <div class="sheet">
+    <h3 id="redeemTitle">兌換這個獎勵？</h3>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelRedeem">取消</button>
+      <button class="btn primary" id="confirmRedeem">兌換</button>
+    </div>
+  </div>
+</div>
+
+<!-- achievement -->
+<div class="achieve-overlay" id="achieveOverlay">
+  <div class="achieve-card">
+    <div class="medal" id="medalNum">50</div>
+    <div class="achieve-title">成就達成！</div>
+    <div class="achieve-sub" id="achieveText">已累積完成 50 個任務</div>
+    <button class="btn primary" id="closeAchieve" style="width:100%">太棒了</button>
+  </div>
+</div>
+
+<!-- gacha reveal -->
+<div class="achieve-overlay" id="gachaOverlay">
+  <div class="achieve-card">
+    <div id="gachaStage"></div>
+    <div class="achieve-title" id="gachaName" style="display:none;"></div>
+    <div id="gachaRarity" style="display:none;"></div>
+    <button class="btn primary" id="closeGacha" style="width:100%;display:none;">收下！</button>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const MILESTONES = [10,25,50,100,200,365,500,1000];
+
+// ===== 扭蛋收藏圖鑑「小小雜貨鋪」 =====
+const TICKET_EVERY = 10; // 每累積完成 10 個任務 = 1 張券
+const ITEMS = [
+  // 普通（28）
+  {id:'c01',emoji:'🥤',name:'無糖可樂',rarity:'common'},
+  {id:'c02',emoji:'🧋',name:'珍珠奶茶',rarity:'common'},
+  {id:'c03',emoji:'🍬',name:'水果糖',rarity:'common'},
+  {id:'c04',emoji:'🍪',name:'手工餅乾',rarity:'common'},
+  {id:'c05',emoji:'🍙',name:'御飯糰',rarity:'common'},
+  {id:'c06',emoji:'🍮',name:'焦糖布丁',rarity:'common'},
+  {id:'c07',emoji:'🧃',name:'蘋果汁',rarity:'common'},
+  {id:'c08',emoji:'🍞',name:'厚片吐司',rarity:'common'},
+  {id:'c09',emoji:'🥐',name:'奶油可頌',rarity:'common'},
+  {id:'c10',emoji:'🍡',name:'花見糰子',rarity:'common'},
+  {id:'c11',emoji:'🍵',name:'熱綠茶',rarity:'common'},
+  {id:'c12',emoji:'☕',name:'手沖咖啡',rarity:'common'},
+  {id:'c13',emoji:'🧦',name:'花花襪子',rarity:'common'},
+  {id:'c14',emoji:'🧢',name:'棒球帽',rarity:'common'},
+  {id:'c15',emoji:'📎',name:'迴紋針',rarity:'common'},
+  {id:'c16',emoji:'✏️',name:'短鉛筆',rarity:'common'},
+  {id:'c17',emoji:'📒',name:'小筆記本',rarity:'common'},
+  {id:'c18',emoji:'🧸',name:'小熊玩偶',rarity:'common'},
+  {id:'c19',emoji:'🎈',name:'紅氣球',rarity:'common'},
+  {id:'c20',emoji:'🪀',name:'溜溜球',rarity:'common'},
+  {id:'c21',emoji:'🃏',name:'撲克牌',rarity:'common'},
+  {id:'c22',emoji:'🧩',name:'拼圖片',rarity:'common'},
+  {id:'c23',emoji:'🐟',name:'小金魚',rarity:'common'},
+  {id:'c24',emoji:'🐢',name:'小烏龜',rarity:'common'},
+  {id:'c25',emoji:'🌵',name:'小仙人掌',rarity:'common'},
+  {id:'c26',emoji:'🌻',name:'向日葵',rarity:'common'},
+  {id:'c27',emoji:'🍀',name:'幸運草',rarity:'common'},
+  {id:'c28',emoji:'🐚',name:'海邊貝殼',rarity:'common'},
+  // 稀有（14）
+  {id:'r01',emoji:'🎧',name:'降噪耳機',rarity:'rare'},
+  {id:'r02',emoji:'📻',name:'復古收音機',rarity:'rare'},
+  {id:'r03',emoji:'📷',name:'底片相機',rarity:'rare'},
+  {id:'r04',emoji:'⌚',name:'古董手錶',rarity:'rare'},
+  {id:'r05',emoji:'🛼',name:'溜冰鞋',rarity:'rare'},
+  {id:'r06',emoji:'🛹',name:'楓木滑板',rarity:'rare'},
+  {id:'r07',emoji:'🎨',name:'顏料組',rarity:'rare'},
+  {id:'r08',emoji:'🎸',name:'木吉他',rarity:'rare'},
+  {id:'r09',emoji:'🔮',name:'水晶球',rarity:'rare'},
+  {id:'r10',emoji:'🪐',name:'小星球儀',rarity:'rare'},
+  {id:'r11',emoji:'🦜',name:'彩色鸚鵡',rarity:'rare'},
+  {id:'r12',emoji:'🦊',name:'小狐狸',rarity:'rare'},
+  {id:'r13',emoji:'🌈',name:'一道彩虹',rarity:'rare'},
+  {id:'r14',emoji:'🎂',name:'生日蛋糕',rarity:'rare'},
+  // 傳說（6）
+  {id:'l01',emoji:'👑',name:'黃金皇冠',rarity:'legendary'},
+  {id:'l02',emoji:'💎',name:'大鑽石',rarity:'legendary'},
+  {id:'l03',emoji:'🐉',name:'小小龍',rarity:'legendary'},
+  {id:'l04',emoji:'🦄',name:'獨角獸',rarity:'legendary'},
+  {id:'l05',emoji:'🚀',name:'小火箭',rarity:'legendary'},
+  {id:'l06',emoji:'🏆',name:'冠軍金盃',rarity:'legendary'},
+];
+const RARITY_LABEL = {common:'普通', rare:'稀有', legendary:'傳說'};
+// 用「本地日期」產生 YYYY-MM-DD（原本的 toISOString 是 UTC，台灣凌晨 0~8 點會被算成前一天）
+function dateKeyOf(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+const todayKey = () => dateKeyOf(new Date());
+
+let state = {
+  boards: [],
+  activeBoard: null,
+  completions: {},     // { "2026-07-13": { taskId: true } }
+  points: 0,
+  totalCompletions: 0,
+  rewards: [],
+  unlockedMilestones: [],
+  bestStreak: 0,
+  tickets: 0,            // 扭蛋券
+  collection: [],        // 已收集的收藏品 id
+  ticketMeter: 0,        // 累積完成任務的集氣條（滿 TICKET_EVERY 換 1 券）
+  lastDailyTicketDay: null, // 當日「啟動獎勵券」是否已發過
+  userName: '',          // 使用者暱稱
+  nameAsked: false,      // 是否已問過名字（避免每次開啟都跳）
+  view: 'board' // 'board' | 'rewards' | 'gacha'
+};
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('habit_state');
+    if(raw){
+      const saved = JSON.parse(raw);
+      state = Object.assign(state, saved);
+      // migrate old fixedTasks/customTasks format into a single tasks array
+      state.boards.forEach(b => {
+        if(!b.tasks){
+          b.tasks = [...(b.fixedTasks||[]), ...(b.customTasks||[])];
+          delete b.fixedTasks;
+          delete b.customTasks;
+        }
+      });
+    } else {
+      // first run defaults
+      const b1 = { id: uid(), name:'每日待辦', tasks:[
+        {id:uid(), text:'喝3杯水'},
+        {id:uid(), text:'按時吃三餐'},
+        {id:uid(), text:'運動20分鐘'},
+        {id:uid(), text:'12點前睡覺'},
+        {id:uid(), text:'整理桌面雜物'},
+      ]};
+      state.boards = [b1];
+      state.activeBoard = b1.id;
+      state.rewards = [
+        {id:uid(), name:'看一場電影', cost:150},
+        {id:uid(), name:'買一杯喜歡的飲料', cost:40},
+      ];
+      await saveState();
+    }
+  }catch(e){
+    console.error('load error', e);
+  }
+  if(!state.activeBoard && state.boards.length) state.activeBoard = state.boards[0].id;
+}
+
+async function saveState(){
+  try{
+    localStorage.setItem('habit_state', JSON.stringify(state));
+  }catch(e){ console.error('save error', e); }
+}
+
+function getBoard(){
+  return state.boards.find(b => b.id === state.activeBoard) || state.boards[0];
+}
+
+function allTasksOf(board){
+  return board.tasks;
+}
+
+function isDone(taskId){
+  const day = state.completions[todayKey()];
+  return !!(day && day[taskId]);
+}
+
+// ===== 連續打卡 streak =====
+// 規則：當天「至少完成 1 個任務」就算打卡成功
+function hasCheckinOn(key){
+  const day = state.completions[key];
+  return !!(day && Object.keys(day).length > 0);
+}
+function computeStreak(){
+  const d = new Date();
+  // 今天還沒打卡 → 從昨天開始往回數（今天還有機會，streak 不算斷）
+  if(!hasCheckinOn(dateKeyOf(d))) d.setDate(d.getDate() - 1);
+  let streak = 0;
+  while(hasCheckinOn(dateKeyOf(d))){
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function render(){
+  document.getElementById('starCount').textContent = state.points;
+  document.getElementById('ticketCount').textContent = state.tickets;
+  const boardTitle = state.userName ? `${state.userName} 的每日任務` : '每日任務';
+  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑' };
+  document.getElementById('pageTitle').textContent = titles[state.view] || '每日任務';
+  document.getElementById('fabRow').style.display = state.view === 'board' ? 'flex' : 'none';
+
+  const main = document.getElementById('mainView');
+  main.innerHTML = '';
+
+  if(state.view === 'rewards'){
+    renderRewards(main);
+    return;
+  }
+  if(state.view === 'gacha'){
+    renderGacha(main);
+    return;
+  }
+
+  // tabs
+  const tabs = document.createElement('div');
+  tabs.className = 'tabs';
+  state.boards.forEach(b => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tab-wrap' + (b.id === state.activeBoard ? ' active' : '');
+    const t = document.createElement('div');
+    t.className = 'tab' + (b.id === state.activeBoard ? ' active' : '');
+    t.textContent = b.name;
+    t.onclick = () => { state.activeBoard = b.id; render(); };
+    wrap.appendChild(t);
+    const gear = document.createElement('div');
+    gear.className = 'tab-gear';
+    gear.textContent = '⋯';
+    gear.onclick = (ev) => { ev.stopPropagation(); openBoardMenu(b.id, b.name); };
+    wrap.appendChild(gear);
+    tabs.appendChild(wrap);
+  });
+  const addTab = document.createElement('div');
+  addTab.className = 'tab add';
+  addTab.textContent = '+ 新增棋盤';
+  addTab.onclick = () => showOverlay('boardOverlay');
+  tabs.appendChild(addTab);
+  main.appendChild(tabs);
+
+  const board = getBoard();
+  if(!board){ main.appendChild(el('div','empty-hint','還沒有棋盤，點上方新增一個吧')); return; }
+
+  const grid = document.createElement('div');
+  grid.className = 'board';
+  const tasks = allTasksOf(board);
+
+  tasks.forEach(task => {
+    const done = isDone(task.id);
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (done ? ' done' : '');
+    cell.innerHTML = `
+      <span>${escapeHtml(task.text)}</span>
+      <span class="check">✓</span>
+    `;
+    const menuBtn = document.createElement('div');
+    menuBtn.className = 'menu-btn';
+    menuBtn.textContent = '⋯';
+    menuBtn.onclick = (ev) => { ev.stopPropagation(); openTaskMenu(board.id, task.id, task.text); };
+    cell.appendChild(menuBtn);
+    cell.onclick = () => toggleTask(board.id, task.id, cell);
+    grid.appendChild(cell);
+  });
+
+  const addCell = document.createElement('div');
+  addCell.className = 'cell add-cell';
+  addCell.textContent = '+ 新增任務';
+  addCell.onclick = () => showOverlay('taskOverlay');
+  grid.appendChild(addCell);
+
+  main.appendChild(grid);
+
+  // 連續打卡 streak 卡片
+  const streak = computeStreak();
+  const checkedToday = hasCheckinOn(todayKey());
+  const sw = document.createElement('div');
+  sw.className = 'streak-wrap';
+  sw.innerHTML = `
+    <div class="streak-flame${checkedToday ? '' : ' dim'}">🔥</div>
+    <div class="streak-info">
+      <div class="streak-num">連續打卡 <b>${streak}</b> 天</div>
+      <div class="streak-sub">${checkedToday ? '今天已打卡' : '今天還沒打卡，完成 1 個任務就算'}　·　最佳紀錄 ${Math.max(state.bestStreak || 0, streak)} 天</div>
+    </div>
+  `;
+  main.appendChild(sw);
+
+  // progress to next milestone
+  const next = MILESTONES.find(m => m > state.totalCompletions) || (MILESTONES[MILESTONES.length-1] + 500);
+  const prevMilestone = [0, ...MILESTONES].reverse().find(m => m <= state.totalCompletions) || 0;
+  const span = next - prevMilestone;
+  const progressed = state.totalCompletions - prevMilestone;
+  const pct = Math.min(100, Math.round((progressed / span) * 100));
+
+  const prog = document.createElement('div');
+  prog.className = 'progress-wrap';
+  prog.innerHTML = `
+    <div class="progress-top"><span>累積完成 ${state.totalCompletions} 個</span><span>下個成就 ${next}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+  `;
+  main.appendChild(prog);
+}
+
+function renderRewards(main){
+  const back = el('div','back-link','← 返回任務');
+  back.onclick = () => { state.view = 'board'; render(); };
+  main.appendChild(back);
+
+  const header = document.createElement('div');
+  header.className = 'rewards-header';
+  header.innerHTML = `<div class="rewards-star">★ ${state.points}</div><div class="rewards-sub">我的積分</div>`;
+  main.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'reward-list';
+
+  if(state.rewards.length === 0){
+    list.appendChild(el('div','empty-hint','還沒有獎勵，新增一個吧'));
+  }
+
+  state.rewards.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'reward-card';
+    const enough = state.points >= r.cost;
+    card.innerHTML = `
+      <div class="reward-info">
+        <div class="reward-name">${escapeHtml(r.name)}</div>
+        <div class="reward-cost">★ ${r.cost} pts</div>
+      </div>
+      <div class="reward-menu" title="編輯或刪除">⋯</div>
+      <button class="redeem-btn" ${enough ? '' : 'disabled'}>兌換</button>
+    `;
+    card.querySelector('.reward-menu').onclick = () => openRewardMenu(r.id);
+    card.querySelector('.redeem-btn').onclick = () => redeemReward(r.id);
+    list.appendChild(card);
+  });
+  main.appendChild(list);
+
+  const addBtn = document.createElement('div');
+  addBtn.className = 'tab add';
+  addBtn.style.marginTop = '16px';
+  addBtn.style.textAlign = 'center';
+  addBtn.textContent = '+ 新增獎勵';
+  addBtn.onclick = () => showOverlay('rewardOverlay');
+  main.appendChild(addBtn);
+}
+
+// ===== 扭蛋圖鑑頁 =====
+function renderGacha(main){
+  const back = el('div','back-link','← 返回任務');
+  back.onclick = () => { state.view = 'board'; render(); };
+  main.appendChild(back);
+
+  // 扭蛋機
+  const machine = document.createElement('div');
+  machine.className = 'gacha-card';
+  const meterPct = Math.round(((state.ticketMeter || 0) / TICKET_EVERY) * 100);
+  machine.innerHTML = `
+    <div class="gacha-ball" id="machineBall"></div>
+    <div class="gacha-tickets">🎫 扭蛋券 × ${state.tickets}</div>
+    <button class="btn primary" id="drawBtn" style="width:70%;" ${state.tickets > 0 ? '' : 'disabled'}>
+      ${state.tickets > 0 ? '轉一顆！' : '先去完成任務拿券'}
+    </button>
+    <div class="gacha-meter">
+      <span>再完成 ${TICKET_EVERY - (state.ticketMeter || 0)} 個任務，就有下一張券（每天第一個任務也送 1 張）</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:${meterPct}%"></div></div>
+    </div>
+  `;
+  const drawBtn = machine.querySelector('#drawBtn');
+  if(state.tickets > 0) drawBtn.onclick = drawGacha;
+  else drawBtn.style.opacity = '0.55';
+  main.appendChild(machine);
+
+  // 圖鑑（依稀有度分區）
+  const owned = state.collection.length;
+  const total = ITEMS.length;
+  const head = el('div','col-sec');
+  head.innerHTML = `<span>收藏圖鑑</span><span>已收集 ${owned} / ${total}</span>`;
+  main.appendChild(head);
+
+  ['legendary','rare','common'].forEach(rarity => {
+    const group = ITEMS.filter(i => i.rarity === rarity);
+    const got = group.filter(i => state.collection.includes(i.id)).length;
+    const sec = el('div','col-sec');
+    sec.innerHTML = `<span>${RARITY_LABEL[rarity]}</span><span>${got} / ${group.length}</span>`;
+    main.appendChild(sec);
+
+    const grid = document.createElement('div');
+    grid.className = 'col-grid';
+    group.forEach(item => {
+      const has = state.collection.includes(item.id);
+      const d = document.createElement('div');
+      d.className = 'col-item ' + rarity + (has ? '' : ' locked');
+      d.innerHTML = `
+        <div class="ci-emoji">${item.emoji}</div>
+        <div class="ci-name">${has ? item.name : '？？？'}</div>
+      `;
+      grid.appendChild(d);
+    });
+    main.appendChild(grid);
+  });
+}
+
+// ===== 抽扭蛋 =====
+function rollRarity(){
+  const r = Math.random();
+  if(r < 0.05) return 'legendary'; // 5%
+  if(r < 0.30) return 'rare';      // 25%
+  return 'common';                 // 70%
+}
+
+async function drawGacha(){
+  if(state.tickets <= 0) return;
+  state.tickets -= 1;
+
+  // 優先從抽中的稀有度裡挑「還沒收集的」；該稀有度集滿就往其他稀有度找
+  const rarity = rollRarity();
+  const order = {
+    common:   ['common','rare','legendary'],
+    rare:     ['rare','common','legendary'],
+    legendary:['legendary','rare','common'],
+  }[rarity];
+  let item = null;
+  for(const tier of order){
+    const pool = ITEMS.filter(i => i.rarity === tier && !state.collection.includes(i.id));
+    if(pool.length){ item = pool[Math.floor(Math.random() * pool.length)]; break; }
+  }
+
+  if(!item){
+    // 全圖鑑集滿：券轉成星星積分
+    state.points += 5;
+    showToast('🎉 圖鑑已全數收集！這張券換成 ★5');
+    render();
+    await saveState();
+    return;
+  }
+
+  state.collection.push(item.id);
+  showGachaReveal(item);
+  await saveState();
+}
+
+function showGachaReveal(item){
+  const stage = document.getElementById('gachaStage');
+  const nameEl = document.getElementById('gachaName');
+  const rarityEl = document.getElementById('gachaRarity');
+  const closeBtn = document.getElementById('closeGacha');
+
+  // 第一階段：膠囊搖晃
+  stage.innerHTML = '<div class="gacha-ball shake"></div>';
+  nameEl.style.display = 'none';
+  rarityEl.style.display = 'none';
+  closeBtn.style.display = 'none';
+  showOverlay('gachaOverlay');
+
+  // 第二階段：開出收藏品
+  setTimeout(() => {
+    stage.innerHTML = `<div class="gacha-item-big">${item.emoji}</div>`;
+    nameEl.textContent = `獲得「${item.name}」！`;
+    nameEl.style.display = '';
+    rarityEl.innerHTML = `<span class="rarity-tag rarity-${item.rarity}">${RARITY_LABEL[item.rarity]}</span>`;
+    rarityEl.style.display = '';
+    closeBtn.style.display = '';
+  }, 900);
+}
+
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text !== undefined) e.textContent = text;
+  return e;
+}
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function toggleTask(boardId, taskId, cellEl){
+  const day = todayKey();
+  if(!state.completions[day]) state.completions[day] = {};
+  const currentlyDone = !!state.completions[day][taskId];
+  const firstOfToday = !hasCheckinOn(day); // 打之前今天是否還沒有任何打卡
+
+  if(currentlyDone){
+    delete state.completions[day][taskId];
+    state.points = Math.max(0, state.points - 1);
+    state.totalCompletions = Math.max(0, state.totalCompletions - 1);
+    state.ticketMeter = Math.max(0, (state.ticketMeter || 0) - 1); // 集氣條回退，但已發的券不收回
+  } else {
+    state.completions[day][taskId] = true;
+    state.points += 1;
+    state.totalCompletions += 1;
+    // 打卡彩帶（即時回饋）
+    if(cellEl){
+      const r = cellEl.getBoundingClientRect();
+      burstConfetti(r.left + r.width/2, r.top + r.height/2);
+    }
+    // 每日啟動獎勵：今天第一個完成的任務 → +1 扭蛋券（一天只發一次）
+    if(firstOfToday && state.lastDailyTicketDay !== day){
+      state.tickets += 1;
+      state.lastDailyTicketDay = day;
+      showToast('🎫 今日啟動成功！獲得 1 張扭蛋券');
+    }
+    // 集氣條：每累積完成 TICKET_EVERY 個任務 → +1 扭蛋券
+    state.ticketMeter = (state.ticketMeter || 0) + 1;
+    if(state.ticketMeter >= TICKET_EVERY){
+      state.ticketMeter -= TICKET_EVERY;
+      state.tickets += 1;
+      showToast(`🎫 累積完成 ${TICKET_EVERY} 個任務！獲得 1 張扭蛋券`);
+    }
+    const s = computeStreak();
+    if(s > (state.bestStreak || 0)) state.bestStreak = s;
+    checkMilestone();
+  }
+  render();
+  await saveState();
+}
+
+// ===== 打卡彩帶 =====
+function burstConfetti(x, y){
+  const colors = ['#D6A23C','#C6A26E','#B5573F','#A9814F','#FFFDF8'];
+  for(let i = 0; i < 14; i++){
+    const p = document.createElement('div');
+    p.className = 'confetti';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.background = colors[i % colors.length];
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 55;
+    p.style.setProperty('--dx', (Math.cos(ang) * dist) + 'px');
+    p.style.setProperty('--dy', (Math.sin(ang) * dist - 30) + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+}
+
+// ===== toast =====
+let toastTimer = null;
+function showToast(text){
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function checkMilestone(){
+  const hit = MILESTONES.find(m => m === state.totalCompletions);
+  if(hit && !state.unlockedMilestones.includes(hit)){
+    state.unlockedMilestones.push(hit);
+    document.getElementById('medalNum').textContent = hit;
+    document.getElementById('achieveText').textContent = `已累積完成 ${hit} 個任務`;
+    document.getElementById('achieveOverlay').classList.add('show');
+  }
+}
+
+let pendingRedeem = null;
+
+// ===== 獎勵的編輯 / 刪除 =====
+let pendingRewardEdit = null;
+
+function openRewardMenu(rewardId){
+  const r = state.rewards.find(x => x.id === rewardId);
+  if(!r) return;
+  pendingRewardEdit = r;
+  document.getElementById('rewardMenuTitle').textContent = r.name;
+  showOverlay('rewardMenuOverlay');
+}
+
+document.getElementById('rewardMenuCancelBtn').onclick = () => { hideOverlay('rewardMenuOverlay'); pendingRewardEdit = null; };
+document.getElementById('rewardMenuEditBtn').onclick = () => {
+  hideOverlay('rewardMenuOverlay');
+  if(!pendingRewardEdit) return;
+  document.getElementById('editRewardName').value = pendingRewardEdit.name;
+  document.getElementById('editRewardCost').value = pendingRewardEdit.cost;
+  showOverlay('editRewardOverlay');
+};
+document.getElementById('rewardMenuDeleteBtn').onclick = () => {
+  hideOverlay('rewardMenuOverlay');
+  if(!pendingRewardEdit) return;
+  document.getElementById('delRewardTitle').textContent = `刪除「${pendingRewardEdit.name}」這個獎勵？`;
+  showOverlay('delRewardOverlay');
+};
+
+document.getElementById('cancelEditReward').onclick = () => { hideOverlay('editRewardOverlay'); pendingRewardEdit = null; };
+document.getElementById('saveEditReward').onclick = async () => {
+  const name = document.getElementById('editRewardName').value.trim();
+  const cost = parseInt(document.getElementById('editRewardCost').value, 10);
+  if(!name || !cost || cost <= 0 || !pendingRewardEdit){ hideOverlay('editRewardOverlay'); pendingRewardEdit = null; return; }
+  pendingRewardEdit.name = name;
+  pendingRewardEdit.cost = cost;
+  pendingRewardEdit = null;
+  hideOverlay('editRewardOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelDelReward').onclick = () => { hideOverlay('delRewardOverlay'); pendingRewardEdit = null; };
+document.getElementById('confirmDelReward').onclick = async () => {
+  if(pendingRewardEdit){
+    state.rewards = state.rewards.filter(r => r.id !== pendingRewardEdit.id);
+    pendingRewardEdit = null;
+  }
+  hideOverlay('delRewardOverlay');
+  render();
+  await saveState();
+};
+
+function redeemReward(rewardId){
+  const r = state.rewards.find(x => x.id === rewardId);
+  if(!r || state.points < r.cost) return;
+  pendingRedeem = r;
+  document.getElementById('redeemTitle').textContent = `用 ★${r.cost} 兌換「${r.name}」？`;
+  showOverlay('redeemOverlay');
+}
+
+document.getElementById('cancelRedeem').onclick = () => { hideOverlay('redeemOverlay'); pendingRedeem = null; };
+document.getElementById('confirmRedeem').onclick = async () => {
+  if(pendingRedeem && state.points >= pendingRedeem.cost){
+    state.points -= pendingRedeem.cost;
+    showToast(`🎁 兌換成功！好好享受「${pendingRedeem.name}」`);
+  }
+  pendingRedeem = null;
+  hideOverlay('redeemOverlay');
+  render();
+  await saveState();
+};
+
+function showOverlay(id){ document.getElementById(id).classList.add('show'); }
+function hideOverlay(id){ document.getElementById(id).classList.remove('show'); }
+
+let pendingBoardAction = null;
+
+function openBoardMenu(boardId, name){
+  pendingBoardAction = { boardId, name };
+  document.getElementById('boardMenuTitle').textContent = name;
+  showOverlay('boardMenuOverlay');
+}
+
+document.getElementById('boardMenuCancelBtn').onclick = () => { hideOverlay('boardMenuOverlay'); pendingBoardAction = null; };
+document.getElementById('boardMenuEditBtn').onclick = () => {
+  hideOverlay('boardMenuOverlay');
+  document.getElementById('renameBoardText').value = pendingBoardAction ? pendingBoardAction.name : '';
+  showOverlay('renameBoardOverlay');
+};
+document.getElementById('boardMenuDeleteBtn').onclick = () => {
+  hideOverlay('boardMenuOverlay');
+  if(state.boards.length <= 1){
+    document.getElementById('delBoardTitle').textContent = '至少要保留一個棋盤，無法刪除';
+    showOverlay('delBoardOverlay');
+    document.getElementById('confirmDelBoard').style.display = 'none';
+  } else {
+    document.getElementById('delBoardTitle').textContent = `刪除「${pendingBoardAction ? pendingBoardAction.name : ''}」這個棋盤？`;
+    document.getElementById('confirmDelBoard').style.display = '';
+    showOverlay('delBoardOverlay');
+  }
+};
+
+document.getElementById('cancelRenameBoard').onclick = () => { hideOverlay('renameBoardOverlay'); pendingBoardAction = null; };
+document.getElementById('saveRenameBoard').onclick = async () => {
+  const newName = document.getElementById('renameBoardText').value.trim();
+  if(!newName || !pendingBoardAction){ hideOverlay('renameBoardOverlay'); return; }
+  const board = state.boards.find(b => b.id === pendingBoardAction.boardId);
+  if(board) board.name = newName;
+  pendingBoardAction = null;
+  hideOverlay('renameBoardOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelDelBoard').onclick = () => { hideOverlay('delBoardOverlay'); pendingBoardAction = null; };
+document.getElementById('confirmDelBoard').onclick = async () => {
+  if(pendingBoardAction && state.boards.length > 1){
+    state.boards = state.boards.filter(b => b.id !== pendingBoardAction.boardId);
+    if(state.activeBoard === pendingBoardAction.boardId){
+      state.activeBoard = state.boards[0].id;
+    }
+  }
+  pendingBoardAction = null;
+  hideOverlay('delBoardOverlay');
+  render();
+  await saveState();
+};
+
+let pendingDelete = null;
+let pendingEdit = null;
+
+function openTaskMenu(boardId, taskId, text){
+  pendingDelete = {boardId, taskId};
+  pendingEdit = {boardId, taskId, text};
+  document.getElementById('taskMenuTitle').textContent = text;
+  showOverlay('taskMenuOverlay');
+}
+
+// wire up static UI
+document.getElementById('starBadge').onclick = () => { state.view = 'rewards'; render(); };
+document.getElementById('ticketBadge').onclick = () => { state.view = 'gacha'; render(); };
+document.getElementById('closeGacha').onclick = () => { hideOverlay('gachaOverlay'); state.view = 'gacha'; render(); };
+document.getElementById('fabRewards').onclick = () => { state.view = 'rewards'; render(); };
+document.getElementById('fabNewCell').onclick = () => showOverlay('taskOverlay');
+
+document.getElementById('cancelBoard').onclick = () => hideOverlay('boardOverlay');
+document.getElementById('saveBoard').onclick = async () => {
+  const name = document.getElementById('newBoardName').value.trim();
+  if(!name) return;
+  const shouldCopy = document.getElementById('copyCurrentBoard').checked;
+  let tasks = [];
+  if(shouldCopy){
+    const current = getBoard();
+    if(current){
+      tasks = current.tasks.map(t => ({ id: uid(), text: t.text }));
+    }
+  }
+  const b = { id: uid(), name, tasks };
+  state.boards.push(b);
+  state.activeBoard = b.id;
+  document.getElementById('newBoardName').value = '';
+  document.getElementById('copyCurrentBoard').checked = false;
+  hideOverlay('boardOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelTask').onclick = () => hideOverlay('taskOverlay');
+document.getElementById('saveTask').onclick = async () => {
+  const text = document.getElementById('newTaskText').value.trim();
+  if(!text) return;
+  const board = getBoard();
+  board.tasks.push({id: uid(), text});
+  document.getElementById('newTaskText').value = '';
+  hideOverlay('taskOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelDel').onclick = () => { hideOverlay('delOverlay'); pendingDelete = null; };
+document.getElementById('confirmDel').onclick = async () => {
+  if(pendingDelete){
+    const board = state.boards.find(b => b.id === pendingDelete.boardId);
+    board.tasks = board.tasks.filter(t => t.id !== pendingDelete.taskId);
+    pendingDelete = null;
+  }
+  hideOverlay('delOverlay');
+  render();
+  await saveState();
+};
+
+// task menu (opened from the "⋯" on each cell)
+document.getElementById('menuCancelBtn').onclick = () => { hideOverlay('taskMenuOverlay'); pendingDelete = null; pendingEdit = null; };
+document.getElementById('menuDeleteBtn').onclick = () => {
+  hideOverlay('taskMenuOverlay');
+  showOverlay('delOverlay');
+};
+document.getElementById('menuEditBtn').onclick = () => {
+  hideOverlay('taskMenuOverlay');
+  document.getElementById('editTaskText').value = pendingEdit ? pendingEdit.text : '';
+  showOverlay('editTaskOverlay');
+};
+document.getElementById('cancelEditTask').onclick = () => { hideOverlay('editTaskOverlay'); pendingEdit = null; };
+document.getElementById('saveEditTask').onclick = async () => {
+  const newText = document.getElementById('editTaskText').value.trim();
+  if(!newText || !pendingEdit){ hideOverlay('editTaskOverlay'); return; }
+  const board = state.boards.find(b => b.id === pendingEdit.boardId);
+  const task = board.tasks.find(t => t.id === pendingEdit.taskId);
+  if(task) task.text = newText;
+  pendingEdit = null;
+  hideOverlay('editTaskOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('cancelReward').onclick = () => hideOverlay('rewardOverlay');
+document.getElementById('saveReward').onclick = async () => {
+  const name = document.getElementById('newRewardName').value.trim();
+  const cost = parseInt(document.getElementById('newRewardCost').value, 10);
+  if(!name || !cost || cost <= 0) return;
+  state.rewards.push({id: uid(), name, cost});
+  document.getElementById('newRewardName').value = '';
+  document.getElementById('newRewardCost').value = '';
+  hideOverlay('rewardOverlay');
+  render();
+  await saveState();
+};
+
+document.getElementById('closeAchieve').onclick = () => hideOverlay('achieveOverlay');
+
+// ===== 使用者暱稱 =====
+function openNameSheet(){
+  document.getElementById('userNameInput').value = state.userName || '';
+  showOverlay('nameOverlay');
+}
+document.getElementById('pageTitle').style.cursor = 'pointer';
+document.getElementById('pageTitle').onclick = () => { if(state.view === 'board') openNameSheet(); };
+document.getElementById('skipName').onclick = async () => {
+  state.nameAsked = true;
+  hideOverlay('nameOverlay');
+  await saveState();
+};
+document.getElementById('saveName').onclick = async () => {
+  const name = document.getElementById('userNameInput').value.trim();
+  state.userName = name;
+  state.nameAsked = true;
+  hideOverlay('nameOverlay');
+  if(name) showToast(`嗨，${name}！這是你的專屬系統了 ✨`);
+  render();
+  await saveState();
+};
+
+(async function init(){
+  await loadState();
+  render();
+  // 第一次使用（還沒問過名字）→ 邀請設定暱稱
+  if(!state.nameAsked && !state.userName){
+    openNameSheet();
+  }
+})();
+
+// 跨日偵測：App 從背景切回前景時，若日期已經變了就重繪
+// （避免掛在主畫面過夜後，畫面還停留在前一天的打卡狀態）
+let lastRenderDay = todayKey();
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && todayKey() !== lastRenderDay){
+    lastRenderDay = todayKey();
+    render();
+  }
+});
+
+// 註冊 service worker（讓 PWA 可離線使用；若透過 file:// 直接開啟則自動略過，不影響原本功能）
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
