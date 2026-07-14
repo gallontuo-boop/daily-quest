@@ -313,6 +313,26 @@
   }
   .sync-status{font-size:12px;color:var(--muted);margin-bottom:12px;}
   .sync-on{color:var(--tan-deep);font-weight:700;}
+
+  /* ===== 使用說明頁 ===== */
+  .help-sec{background:var(--card);border-radius:16px;margin-bottom:10px;overflow:hidden;}
+  .help-head{
+    padding:14px 16px;font-weight:900;font-size:14.5px;
+    display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+  }
+  .help-head .arrow{color:var(--muted);transition:transform .2s;font-size:12px;}
+  .help-sec.open .help-head .arrow{transform:rotate(90deg);}
+  .help-body{display:none;padding:0 16px 14px;font-size:13.5px;line-height:1.8;color:var(--ink);}
+  .help-sec.open .help-body{display:block;}
+  .help-body b{color:var(--tan-deep);}
+  .help-body .hb-card{background:var(--white);border:1px solid var(--card-line);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:12.5px;}
+  .lang-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .lang-btn{
+    flex:1;padding:9px 0;border-radius:999px;text-align:center;
+    font-size:13.5px;font-weight:700;cursor:pointer;
+    background:var(--white);border:1.5px solid var(--card-line);color:var(--muted);
+  }
+  .lang-btn.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
 </style>
 </head>
 <body>
@@ -684,6 +704,7 @@ let state = {
   lastDailyTicketDay: null, // 當日「啟動獎勵券」是否已發過
   userName: '',          // 使用者暱稱
   nameAsked: false,      // 是否已問過名字（避免每次開啟都跳）
+  helpLang: 'zh',        // 使用說明語言 'zh' | 'en'
   view: 'board' // 'board' | 'rewards' | 'gacha'
 };
 
@@ -770,7 +791,7 @@ function render(){
   document.getElementById('starCount').textContent = state.points;
   document.getElementById('ticketCount').textContent = state.tickets;
   const boardTitle = state.userName ? `${state.userName} 的每日任務` : '每日任務';
-  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑', settings:'設定' };
+  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑', settings:'設定', help:'使用說明' };
   document.getElementById('pageTitle').textContent = titles[state.view] || '每日任務';
   document.getElementById('fabRow').style.display = state.view === 'board' ? 'flex' : 'none';
 
@@ -787,6 +808,10 @@ function render(){
   }
   if(state.view === 'settings'){
     renderSettings(main);
+    return;
+  }
+  if(state.view === 'help'){
+    renderHelp(main);
     return;
   }
 
@@ -1220,6 +1245,19 @@ function renderSettings(main){
   back.onclick = () => { state.view = 'board'; render(); };
   main.appendChild(back);
 
+  // --- 使用說明入口 ---
+  const helpCard = document.createElement('div');
+  helpCard.className = 'settings-card';
+  helpCard.innerHTML = `
+    <div class="settings-title">📖 使用說明</div>
+    <div class="settings-desc">第一次使用？所有功能的操作方式、獎勵定價心法、同步教學都在這裡。</div>
+    <div class="sheet-btns">
+      <button class="btn primary" id="btnHelp">打開使用說明</button>
+    </div>
+  `;
+  main.appendChild(helpCard);
+  helpCard.querySelector('#btnHelp').onclick = () => { state.view = 'help'; render(); };
+
   // --- 雲端同步 ---
   const syncCard = document.createElement('div');
   syncCard.className = 'settings-card';
@@ -1291,6 +1329,60 @@ function renderSettings(main){
   `;
   main.appendChild(nmCard);
   nmCard.querySelector('#btnEditName').onclick = openNameSheet;
+}
+
+// ===== 📖 使用說明頁（中英切換）=====
+const HELP_SECTIONS = [
+  { t:'💡 這是什麼？', b:`「每日任務」幫你<b>啟動日常小行動</b>。核心想法：任務越小越好——「喝一口水」「打開書本」都值得成為一格任務。最難的不是做完，而是開始，所以這裡<b>獎勵的是啟動本身</b>。<div class="hb-card">你會得到三種動力：<br>① 完成任務得 ★ 星星，兌換自訂的真實獎勵<br>② 獲得 🎫 扭蛋券，抽收藏品、集滿 48 格圖鑑<br>③ 🔥 連續打卡紀錄與 8 個里程碑成就</div>` },
+  { t:'🗂️ 任務與棋盤', b:`<b>打卡</b>：點任務格＝完成（+1★＋彩帶），再點＝取消。<br><b>編輯／刪除任務</b>：點格子右上角「⋯」。<br><b>新增任務</b>：點右下角 ✎，任務拆到「小到不可能失敗」最有效——與其寫「運動 30 分鐘」，不如寫「換上運動服」。<br><b>棋盤分頁</b>：上方分頁可分類任務（如「每日待辦」「運動」）。點「＋」新增棋盤（可複製目前棋盤的任務）；分頁旁「⋯」可改名或刪除。` },
+  { t:'★ 星星與真實獎勵', b:`每完成一個任務 +1★。點右上角 ★ 進入獎勵頁 → 「＋ 新增獎勵」設定<b>你自己想要的真實獎勵</b>與價格，積分夠了按「兌換」。獎勵卡片上的「⋯」可編輯或刪除。<div class="hb-card"><b>定價心法</b>（假設一天完成 5～8 個任務）：<br>小獎勵 30～50★＝一週內摸得到（一瓶飲料）<br>中獎勵 150★ 左右＝約三週（看場電影）<br>大獎勵 300～500★＝一兩個月（買件衣服）<br>一定要有一個很快能換到的小獎勵，動力系統才轉得起來！</div>` },
+  { t:'🎫 扭蛋券與收藏圖鑑', b:`<b>拿券</b>：每天第一個完成的任務送 1 張（獎勵你的啟動！）；每累積完成 10 個任務再送 1 張。<br><b>抽獎</b>：點右上角 🎫 → 「轉一顆！」。會優先抽到你<b>還沒收集的</b>，不會一直重複。<br><b>圖鑑</b>：共 48 格——普通 28 種（70%）、稀有 14 種（25%）、傳說 6 種（5%）。全部集滿後，多的券自動換成 ★5。` },
+  { t:'🔥 連續打卡與成就', b:`當天完成<b>至少 1 個任務</b>就算打卡。今天還沒打卡時火焰是灰色的（從昨天往回數、不算斷），完成任何一格就點亮。中間漏一天才會歸零，最佳紀錄會永久保留。<br><br>累積完成 10／25／50／100／200／365／500／1000 個任務時，會跳出獎章慶祝，首頁下方進度條顯示距離下一個成就還差多少。` },
+  { t:'☁️ 雲端同步（多裝置共用）', b:`預設資料只存在這台裝置。想讓 iPhone＋iPad 共用：<br><b>第一台</b>：設定 → 雲端同步 → 「建立同步碼」→ 截圖保存那組 12 位碼。<br><b>第二台</b>：設定 → 「我有同步碼」→ 輸入同一組碼 → 完成，之後兩台即時互通。<div class="hb-card">⚠️ 連結時第二台會改用雲端資料；兩台都離線各自修改時，後恢復連線者為準。同步碼請保管好，知道碼的人就能存取這份資料。</div>` },
+  { t:'💾 資料備份', b:`<b>匯出</b>：設定 → 「匯出備份」，下載一個包含所有資料的檔案，建議定期做、存到雲端硬碟。<br><b>匯入</b>：任何裝置 → 「匯入備份」→ 選檔案 → 確認（會取代目前資料）。換新手機或誤刪資料時就靠它。` },
+  { t:'❓ 常見問題', b:`<b>Q：關掉 App 資料會不見嗎？</b><br>不會，資料存在裝置裡。只有清除瀏覽器網站資料、刪掉主畫面圖示、或用無痕模式才會弄丟——所以請定期匯出備份。<br><br><b>Q：取消打卡會怎樣？</b><br>星星扣回、集氣條回退，但已發的扭蛋券不收回。當天全取消會影響連續天數。<br><br><b>Q：分享給朋友，他們看得到我的資料嗎？</b><br>看不到，每個人都是獨立副本。<br><br><b>Q：App 更新要重新安裝嗎？</b><br>不用，把 App 從多工列滑掉重開就拿到新版，資料保留。` },
+];
+
+const HELP_SECTIONS_EN = [
+  { t:'💡 What is this?', b:`Daily Quest helps you <b>start small daily actions</b>. The core idea: the smaller the task, the better — "sip water" or "open the book" all deserve a tile. The hardest part isn't finishing, it's starting, so this app <b>rewards the act of starting itself</b>.<div class="hb-card">Three sources of motivation:<br>① Complete tasks to earn ★ stars for real-life rewards you define<br>② Earn 🎫 gacha tickets to draw collectibles and fill the 48-item book<br>③ A 🔥 daily streak and 8 milestone achievements</div>` },
+  { t:'🗂️ Tasks & boards', b:`<b>Check in</b>: tap a tile = done (+1★ + confetti), tap again = undo.<br><b>Edit / delete</b>: tap the "⋯" at the tile's top right.<br><b>Add tasks</b>: tap ✎ at the bottom right. Break tasks down until they're "too small to fail" — instead of "exercise 30 min", write "put on workout clothes".<br><b>Board tabs</b>: organize tasks into boards (e.g. "Daily", "Fitness"). Tap "+" to add a board (optionally copying current tasks); "⋯" next to a tab renames or deletes it.` },
+  { t:'★ Stars & real rewards', b:`Each completed task earns +1★. Tap ★ at the top right → "+ Add reward" to define <b>your own real-life rewards</b> and prices; when you have enough, tap "Redeem". The "⋯" on each card edits or deletes it.<div class="hb-card"><b>Pricing guide</b> (5–8 tasks/day):<br>Small 30–50★ = within a week (a drink)<br>Medium ~150★ = about 3 weeks (a movie)<br>Big 300–500★ = 1–2 months (a new shirt)<br>Always keep one cheap reward — early wins keep the loop spinning!</div>` },
+  { t:'🎫 Gacha & collection', b:`<b>Earn tickets</b>: your first completed task each day earns 1 (a reward for starting!); every 10 completed tasks earn 1 more.<br><b>Draw</b>: tap 🎫 → "Spin!". Draws favor items <b>you don't own yet</b> — no frustrating duplicates.<br><b>Collection</b>: 48 items — Common 28 (70%), Rare 14 (25%), Legendary 6 (5%). Once complete, extra tickets convert to ★5 each.` },
+  { t:'🔥 Streak & milestones', b:`Completing <b>at least 1 task</b> counts as a check-in for the day. The flame is grey until your first task today (counting from yesterday — the streak isn't broken yet); it lights up when you complete any tile. Missing a whole day resets it; your best record is kept forever.<br><br>At 10 / 25 / 50 / 100 / 200 / 365 / 500 / 1000 total tasks, a medal celebration pops up; the progress bar on the home page shows how close you are.` },
+  { t:'☁️ Cloud sync (multi-device)', b:`By default data lives on this device only. To share between iPhone + iPad:<br><b>First device</b>: Settings → Cloud sync → "Create sync code" → screenshot the 12-character code.<br><b>Second device</b>: Settings → "I have a sync code" → enter the same code → done; both devices sync in real time.<div class="hb-card">⚠️ When linking, the second device adopts the cloud data; if both edit while offline, the one that reconnects later wins. Keep your code private — anyone who knows it can access this data.</div>` },
+  { t:'💾 Backup', b:`<b>Export</b>: Settings → "Export backup" downloads a file with all your data — do it regularly and save it to cloud storage.<br><b>Import</b>: on any device → "Import backup" → choose the file → confirm (replaces current data). Your safety net for phone upgrades or accidental wipes.` },
+  { t:'❓ FAQ', b:`<b>Q: Will I lose data when I close the app?</b><br>No — data lives on your device. Only clearing website data, deleting the home-screen icon, or private browsing loses it, so export backups regularly.<br><br><b>Q: What if I undo a check-in?</b><br>The star is taken back and the meter steps back, but granted tickets stay yours. Undoing all of today's tasks affects your streak.<br><br><b>Q: Can friends see my data if I share the app?</b><br>No — everyone gets an independent copy.<br><br><b>Q: Do I need to reinstall on updates?</b><br>No — swipe the app away and reopen to get the new version; data is kept.` },
+];
+
+function renderHelp(main){
+  const isEn = state.helpLang === 'en';
+
+  const back = el('div','back-link', isEn ? '← Back to Settings' : '← 返回設定');
+  back.onclick = () => { state.view = 'settings'; render(); };
+  main.appendChild(back);
+
+  // 語言切換
+  const toggle = document.createElement('div');
+  toggle.className = 'lang-toggle';
+  toggle.innerHTML = `
+    <div class="lang-btn${isEn ? '' : ' on'}" id="langZh">中文</div>
+    <div class="lang-btn${isEn ? ' on' : ''}" id="langEn">English</div>
+  `;
+  toggle.querySelector('#langZh').onclick = async () => { state.helpLang = 'zh'; render(); await saveState(); };
+  toggle.querySelector('#langEn').onclick = async () => { state.helpLang = 'en'; render(); await saveState(); };
+  main.appendChild(toggle);
+
+  const sections = isEn ? HELP_SECTIONS_EN : HELP_SECTIONS;
+  sections.forEach((sec, i) => {
+    const d = document.createElement('div');
+    d.className = 'help-sec' + (i === 0 ? ' open' : '');
+    d.innerHTML = `
+      <div class="help-head">${sec.t}<span class="arrow">▶</span></div>
+      <div class="help-body">${sec.b}</div>
+    `;
+    d.querySelector('.help-head').onclick = () => d.classList.toggle('open');
+    main.appendChild(d);
+  });
 }
 
 function el(tag, cls, text){
