@@ -33,7 +33,9 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--cream);
+    background-color:var(--cream);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='none' stroke='%23C6A26E' stroke-width='2' opacity='0.12' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M40 42l3.5 7.5 8 .9-6 5.4 1.7 7.9-7.2-4.2-7.2 4.2 1.7-7.9-6-5.4 8-.9z'/%3E%3Ccircle cx='178' cy='38' r='11'/%3E%3Cpath d='M172 38l4 4 7-8'/%3E%3Cpath d='M226 130l3 9 9 3-9 3-3 9-3-9-9-3 9-3z'/%3E%3Ccircle cx='92' cy='158' r='3' fill='%23C6A26E' stroke='none' opacity='0.5'/%3E%3Cpath d='M148 208l3.5 7.5 8 .9-6 5.4 1.7 7.9-7.2-4.2-7.2 4.2 1.7-7.9-6-5.4 8-.9z'/%3E%3Cpath d='M34 192l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:260px 260px;
     font-family:'Noto Sans TC','Noto Serif TC',sans-serif;
     color:var(--ink);
     -webkit-tap-highlight-color:transparent;
@@ -299,6 +301,18 @@
     white-space:nowrap;
   }
   .toast.show{opacity:1;}
+
+  /* ===== 設定頁 ===== */
+  .settings-card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;}
+  .settings-title{font-weight:900;font-size:15px;margin-bottom:8px;}
+  .settings-desc{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+  .sync-code-box{
+    background:var(--white);border:1.5px dashed var(--tan);border-radius:12px;
+    padding:12px;text-align:center;font-weight:900;font-size:19px;
+    letter-spacing:2px;margin-bottom:12px;user-select:all;
+  }
+  .sync-status{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .sync-on{color:var(--tan-deep);font-weight:700;}
 </style>
 </head>
 <body>
@@ -306,6 +320,7 @@
   <div class="topbar">
     <div class="brand" id="pageTitle">每日任務</div>
     <div style="display:flex;gap:8px;">
+      <div class="star-badge" id="settingsBadge" title="設定" style="padding:7px 11px;">⚙️</div>
       <div class="star-badge" id="ticketBadge" title="扭蛋圖鑑">
         <span style="font-size:15px;">🎫</span>
         <span id="ticketCount">0</span>
@@ -441,6 +456,58 @@
   </div>
 </div>
 
+<!-- show new sync code -->
+<div class="overlay" id="syncCodeOverlay">
+  <div class="sheet">
+    <h3>你的同步碼</h3>
+    <div class="sync-code-box" id="syncCodeDisplay">XXXX-XXXX-XXXX</div>
+    <div class="settings-desc">請抄下或截圖保存。在另一台裝置（iPad 等）打開 App → ⚙️ 設定 → 「我有同步碼」→ 輸入這組碼，兩台裝置就會共用同一份資料。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="copySyncCode">複製</button>
+      <button class="btn primary" id="doneSyncCode">我記下了</button>
+    </div>
+  </div>
+</div>
+
+<!-- enter sync code -->
+<div class="overlay" id="enterCodeOverlay">
+  <div class="sheet">
+    <h3>輸入同步碼</h3>
+    <input type="text" id="syncCodeInput" placeholder="例如：AB3D-EF5G-HJ7K" autocapitalize="characters" autocomplete="off">
+    <div class="settings-desc">⚠️ 連結後，這台裝置會改用「雲端上的資料」，目前這台裝置的本機資料會被取代（建議先匯出備份）。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelEnterCode">取消</button>
+      <button class="btn primary" id="confirmEnterCode">連結</button>
+    </div>
+  </div>
+</div>
+
+<!-- stop sync confirm -->
+<div class="overlay" id="stopSyncOverlay">
+  <div class="sheet">
+    <h3>停止雲端同步？</h3>
+    <div class="settings-desc">這台裝置的資料會保留，只是不再與雲端同步。之後可以隨時用同一組同步碼重新連結。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelStopSync">取消</button>
+      <button class="btn danger" id="confirmStopSync">停止同步</button>
+    </div>
+  </div>
+</div>
+
+<!-- import confirm -->
+<div class="overlay" id="importOverlay">
+  <div class="sheet">
+    <h3>匯入這份備份？</h3>
+    <div class="settings-desc">⚠️ 匯入會以備份檔的內容取代目前的資料（任務、積分、圖鑑、暱稱全部）。</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="cancelImport">取消</button>
+      <button class="btn primary" id="confirmImport">確定匯入</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+
 <!-- set user name -->
 <div class="overlay" id="nameOverlay">
   <div class="sheet">
@@ -527,6 +594,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   ☁️ 雲端同步設定（Firebase）
+   還沒設定時 App 一切照常運作，只是設定頁會顯示「尚未設定」。
+   啟用步驟：
+   1. 到 https://console.firebase.google.com 建立專案
+   2. 專案設定 → 新增網頁應用程式 → 會看到 firebaseConfig
+   3. 把下面三個 "PASTE_..." 換成你的 apiKey / authDomain / projectId
+   4. Firebase 主控台 → Firestore Database → 建立資料庫 → 規則貼上
+      聊天訊息裡提供的規則 → 發布
+   5. 存檔後重新上傳到 GitHub 即完成
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+};
+const firebaseReady = () => !!FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('PASTE');
+
 const MILESTONES = [10,25,50,100,200,365,500,1000];
 
 // ===== 扭蛋收藏圖鑑「小小雜貨鋪」 =====
@@ -646,12 +731,15 @@ async function loadState(){
     console.error('load error', e);
   }
   if(!state.activeBoard && state.boards.length) state.activeBoard = state.boards[0].id;
+  state.view = 'board'; // 每次開啟都從任務首頁開始
 }
 
 async function saveState(){
   try{
     localStorage.setItem('habit_state', JSON.stringify(state));
+    localStorage.setItem('habit_updatedAt', String(Date.now()));
   }catch(e){ console.error('save error', e); }
+  schedulePush(); // 若已啟用雲端同步，延遲 0.8 秒批次上傳（連續打卡只傳一次）
 }
 
 function getBoard(){
@@ -689,7 +777,7 @@ function render(){
   document.getElementById('starCount').textContent = state.points;
   document.getElementById('ticketCount').textContent = state.tickets;
   const boardTitle = state.userName ? `${state.userName} 的每日任務` : '每日任務';
-  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑' };
+  const titles = { board: boardTitle, rewards:'積分獎勵', gacha:'扭蛋圖鑑', settings:'設定' };
   document.getElementById('pageTitle').textContent = titles[state.view] || '每日任務';
   document.getElementById('fabRow').style.display = state.view === 'board' ? 'flex' : 'none';
 
@@ -702,6 +790,10 @@ function render(){
   }
   if(state.view === 'gacha'){
     renderGacha(main);
+    return;
+  }
+  if(state.view === 'settings'){
+    renderSettings(main);
     return;
   }
 
@@ -955,6 +1047,259 @@ function showGachaReveal(item){
   }, 900);
 }
 
+// ============================================================
+// ☁️ 雲端同步引擎
+// 原理：一組同步碼 = 雲端上的一份資料。啟用後每次存檔自動上傳，
+// 其他連了同一組碼的裝置會即時收到更新（onSnapshot）。
+// 兩台裝置都離線各自修改時，後上線的那台會覆蓋（last-write-wins）。
+// ============================================================
+let db = null, fs = null;           // Firestore 實例與模組
+let syncInfo = { code: null, deviceId: null, lastSync: 0 };
+let unsubSnapshot = null;
+let lastAppliedRemote = 0;
+let pushTimer = null;
+
+function loadSyncInfo(){
+  try{
+    const raw = localStorage.getItem('habit_sync');
+    if(raw) syncInfo = Object.assign(syncInfo, JSON.parse(raw));
+  }catch(e){}
+  if(!syncInfo.deviceId){ syncInfo.deviceId = uid() + uid(); saveSyncInfo(); }
+}
+function saveSyncInfo(){ localStorage.setItem('habit_sync', JSON.stringify(syncInfo)); }
+
+async function initFirebase(){
+  if(db) return db;
+  if(!firebaseReady()) return null;
+  try{
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    fs = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const app = appMod.initializeApp(FIREBASE_CONFIG);
+    db = fs.getFirestore(app);
+    return db;
+  }catch(e){
+    console.warn('Firebase 載入失敗（可能離線或設定有誤）', e);
+    return null;
+  }
+}
+
+function genSyncCode(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 去掉易混淆的 I/L/O/0/1
+  let s = '';
+  for(let i = 0; i < 12; i++){
+    s += chars[Math.floor(Math.random() * chars.length)];
+    if(i === 3 || i === 7) s += '-';
+  }
+  return s;
+}
+
+function cloudPayload(){
+  const data = Object.assign({}, state);
+  delete data.view; // 目前在哪一頁不需要同步
+  return { data, updatedAt: Date.now(), updatedBy: syncInfo.deviceId };
+}
+
+function schedulePush(){
+  if(!syncInfo.code || !db) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushNow, 800);
+}
+
+async function pushNow(){
+  if(!syncInfo.code || !db) return;
+  try{
+    await fs.setDoc(fs.doc(db, 'sync', syncInfo.code), cloudPayload());
+    syncInfo.lastSync = Date.now();
+    saveSyncInfo();
+  }catch(e){ console.warn('上傳失敗，下次存檔會再試', e); }
+}
+
+function applyRemote(payload){
+  if(!payload || !payload.data) return;
+  const keepView = state.view;
+  state = Object.assign({}, state, payload.data);
+  state.view = keepView;
+  lastAppliedRemote = payload.updatedAt || Date.now();
+  // 直接寫 localStorage（不走 saveState，避免又推回雲端造成迴圈）
+  localStorage.setItem('habit_state', JSON.stringify(state));
+  localStorage.setItem('habit_updatedAt', String(lastAppliedRemote));
+  syncInfo.lastSync = Date.now();
+  saveSyncInfo();
+  render();
+}
+
+function startListening(){
+  if(!syncInfo.code || !db) return;
+  if(unsubSnapshot) unsubSnapshot();
+  unsubSnapshot = fs.onSnapshot(fs.doc(db, 'sync', syncInfo.code), (snap) => {
+    const d = snap.data();
+    if(!d) return;
+    if(d.updatedBy === syncInfo.deviceId) return;        // 自己剛剛寫的
+    if((d.updatedAt || 0) <= lastAppliedRemote) return;  // 已經套用過
+    applyRemote(d);
+    showToast('☁️ 已同步雲端最新資料');
+  }, (err) => console.warn('同步監聽中斷', err));
+}
+
+// App 啟動時：已有同步碼 → 比較本機與雲端誰比較新
+async function connectSync(){
+  if(!syncInfo.code) return;
+  if(!(await initFirebase())) return;
+  try{
+    const snap = await fs.getDoc(fs.doc(db, 'sync', syncInfo.code));
+    const remote = snap.exists() ? snap.data() : null;
+    const localAt = parseInt(localStorage.getItem('habit_updatedAt') || '0', 10);
+    if(remote && (remote.updatedAt || 0) > localAt){
+      applyRemote(remote);
+    } else {
+      await pushNow();
+    }
+    startListening();
+  }catch(e){ console.warn('連線同步失敗', e); }
+}
+
+async function enableSyncNew(){
+  showToast('☁️ 連線中…');
+  if(!(await initFirebase())){ showToast('無法連線，請確認網路與 Firebase 設定'); return; }
+  syncInfo.code = genSyncCode();
+  saveSyncInfo();
+  await pushNow();
+  startListening();
+  document.getElementById('syncCodeDisplay').textContent = syncInfo.code;
+  showOverlay('syncCodeOverlay');
+  render();
+}
+
+async function enableSyncWith(codeRaw){
+  const code = codeRaw.trim().toUpperCase();
+  if(!code) return false;
+  showToast('☁️ 連線中…');
+  if(!(await initFirebase())){ showToast('無法連線，請確認網路與 Firebase 設定'); return false; }
+  try{
+    const snap = await fs.getDoc(fs.doc(db, 'sync', code));
+    if(!snap.exists()){ showToast('找不到這個同步碼，請確認輸入是否正確'); return false; }
+    syncInfo.code = code;
+    saveSyncInfo();
+    applyRemote(snap.data());
+    startListening();
+    showToast('☁️ 連結成功，資料已同步');
+    return true;
+  }catch(e){
+    console.warn(e);
+    showToast('連結失敗，請稍後再試');
+    return false;
+  }
+}
+
+function disableSync(){
+  if(unsubSnapshot){ unsubSnapshot(); unsubSnapshot = null; }
+  syncInfo.code = null;
+  saveSyncInfo();
+  showToast('已停止雲端同步（本機資料保留）');
+  render();
+}
+
+// ============================================================
+// 💾 備份：匯出 / 匯入
+// ============================================================
+let pendingImport = null;
+
+function exportBackup(){
+  const data = Object.assign({}, state);
+  delete data.view;
+  const payload = { app: 'daily-quest', exportedAt: new Date().toISOString(), data };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `daily-quest-backup-${todayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  showToast('💾 已匯出備份檔');
+}
+
+// ============================================================
+// ⚙️ 設定頁
+// ============================================================
+function renderSettings(main){
+  const back = el('div','back-link','← 返回任務');
+  back.onclick = () => { state.view = 'board'; render(); };
+  main.appendChild(back);
+
+  // --- 雲端同步 ---
+  const syncCard = document.createElement('div');
+  syncCard.className = 'settings-card';
+  if(!firebaseReady()){
+    syncCard.innerHTML = `
+      <div class="settings-title">☁️ 雲端同步</div>
+      <div class="settings-desc">尚未設定 Firebase。設定完成後，iPhone 和 iPad 可以共用同一份資料、即時同步。設定方法在檔案開頭的說明註解裡（免費、約 5 分鐘）。在那之前，可以先用下面的「匯出備份」在裝置間搬資料。</div>
+    `;
+  } else if(!syncInfo.code){
+    syncCard.innerHTML = `
+      <div class="settings-title">☁️ 雲端同步</div>
+      <div class="settings-desc">啟用後，這份資料會存到雲端，其他裝置輸入同一組「同步碼」就能共用並即時同步。</div>
+      <div class="sheet-btns">
+        <button class="btn primary" id="btnNewSync">建立同步碼（第一台裝置）</button>
+      </div>
+      <div class="sheet-btns" style="margin-top:10px;">
+        <button class="btn ghost" id="btnHaveCode">我有同步碼（第二台裝置）</button>
+      </div>
+    `;
+  } else {
+    const t = syncInfo.lastSync ? new Date(syncInfo.lastSync).toLocaleString('zh-TW') : '—';
+    syncCard.innerHTML = `
+      <div class="settings-title">☁️ 雲端同步 <span class="sync-on">已啟用</span></div>
+      <div class="sync-code-box">${escapeHtml(syncInfo.code)}</div>
+      <div class="sync-status">上次同步：${t}。在另一台裝置的設定頁選「我有同步碼」並輸入這組碼即可共用資料。</div>
+      <div class="sheet-btns">
+        <button class="btn ghost" id="btnCopyCode">複製同步碼</button>
+        <button class="btn danger" id="btnStopSync">停止同步</button>
+      </div>
+    `;
+  }
+  main.appendChild(syncCard);
+  const btnNewSync = syncCard.querySelector('#btnNewSync');
+  if(btnNewSync) btnNewSync.onclick = enableSyncNew;
+  const btnHaveCode = syncCard.querySelector('#btnHaveCode');
+  if(btnHaveCode) btnHaveCode.onclick = () => { document.getElementById('syncCodeInput').value = ''; showOverlay('enterCodeOverlay'); };
+  const btnCopyCode = syncCard.querySelector('#btnCopyCode');
+  if(btnCopyCode) btnCopyCode.onclick = async () => {
+    try{ await navigator.clipboard.writeText(syncInfo.code); showToast('已複製同步碼'); }
+    catch(e){ showToast('無法自動複製，請長按同步碼手動複製'); }
+  };
+  const btnStopSync = syncCard.querySelector('#btnStopSync');
+  if(btnStopSync) btnStopSync.onclick = () => showOverlay('stopSyncOverlay');
+
+  // --- 備份 ---
+  const bkCard = document.createElement('div');
+  bkCard.className = 'settings-card';
+  bkCard.innerHTML = `
+    <div class="settings-title">💾 資料備份</div>
+    <div class="settings-desc">匯出會把所有資料（任務、積分、圖鑑、連續紀錄、暱稱）存成一個檔案；在任何裝置匯入即可還原。建議定期匯出保存。</div>
+    <div class="sheet-btns">
+      <button class="btn primary" id="btnExport">匯出備份</button>
+      <button class="btn ghost" id="btnImport">匯入備份</button>
+    </div>
+  `;
+  main.appendChild(bkCard);
+  bkCard.querySelector('#btnExport').onclick = exportBackup;
+  bkCard.querySelector('#btnImport').onclick = () => document.getElementById('importFile').click();
+
+  // --- 暱稱 ---
+  const nmCard = document.createElement('div');
+  nmCard.className = 'settings-card';
+  nmCard.innerHTML = `
+    <div class="settings-title">✏️ 暱稱</div>
+    <div class="settings-desc">${state.userName ? '目前暱稱：' + escapeHtml(state.userName) : '還沒設定暱稱'}</div>
+    <div class="sheet-btns">
+      <button class="btn ghost" id="btnEditName">修改暱稱</button>
+    </div>
+  `;
+  main.appendChild(nmCard);
+  nmCard.querySelector('#btnEditName').onclick = openNameSheet;
+}
+
 function el(tag, cls, text){
   const e = document.createElement(tag);
   if(cls) e.className = cls;
@@ -1186,6 +1531,55 @@ function openTaskMenu(boardId, taskId, text){
 
 // wire up static UI
 document.getElementById('starBadge').onclick = () => { state.view = 'rewards'; render(); };
+document.getElementById('settingsBadge').onclick = () => { state.view = 'settings'; render(); };
+
+// 同步相關彈窗
+document.getElementById('copySyncCode').onclick = async () => {
+  try{ await navigator.clipboard.writeText(syncInfo.code || ''); showToast('已複製同步碼'); }
+  catch(e){ showToast('無法自動複製，請長按同步碼手動複製'); }
+};
+document.getElementById('doneSyncCode').onclick = () => hideOverlay('syncCodeOverlay');
+document.getElementById('cancelEnterCode').onclick = () => hideOverlay('enterCodeOverlay');
+document.getElementById('confirmEnterCode').onclick = async () => {
+  const ok = await enableSyncWith(document.getElementById('syncCodeInput').value);
+  if(ok) hideOverlay('enterCodeOverlay');
+};
+document.getElementById('cancelStopSync').onclick = () => hideOverlay('stopSyncOverlay');
+document.getElementById('confirmStopSync').onclick = () => { hideOverlay('stopSyncOverlay'); disableSync(); };
+
+// 匯入備份
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      const data = (parsed.data && Array.isArray(parsed.data.boards)) ? parsed.data
+                 : (Array.isArray(parsed.boards) ? parsed : null);
+      if(!data) throw new Error('invalid');
+      pendingImport = data;
+      showOverlay('importOverlay');
+    }catch(err){
+      showToast('這不是有效的備份檔');
+    }
+  };
+  reader.readAsText(f);
+});
+document.getElementById('cancelImport').onclick = () => { hideOverlay('importOverlay'); pendingImport = null; };
+document.getElementById('confirmImport').onclick = async () => {
+  if(pendingImport){
+    const keepView = state.view;
+    state = Object.assign({}, state, pendingImport);
+    state.view = keepView;
+    pendingImport = null;
+    showToast('✅ 匯入完成');
+  }
+  hideOverlay('importOverlay');
+  render();
+  await saveState(); // 若已啟用同步，匯入的資料也會推上雲端
+};
 document.getElementById('ticketBadge').onclick = () => { state.view = 'gacha'; render(); };
 document.getElementById('closeGacha').onclick = () => { hideOverlay('gachaOverlay'); state.view = 'gacha'; render(); };
 document.getElementById('fabRewards').onclick = () => { state.view = 'rewards'; render(); };
@@ -1299,12 +1693,14 @@ document.getElementById('saveName').onclick = async () => {
 };
 
 (async function init(){
+  loadSyncInfo();
   await loadState();
   render();
   // 第一次使用（還沒問過名字）→ 邀請設定暱稱
   if(!state.nameAsked && !state.userName){
     openNameSheet();
   }
+  connectSync(); // 已啟用同步的話，背景連線比對本機/雲端（不阻擋畫面）
 })();
 
 // 跨日偵測：App 從背景切回前景時，若日期已經變了就重繪
